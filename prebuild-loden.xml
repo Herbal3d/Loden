@@ -1,0 +1,47 @@
+    <Project frameworkVersion="v4_6" name="Loden" path="addon-modules/Loden/Loden" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+          <AllowUnsafe>true</AllowUnsafe>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+          <AllowUnsafe>true</AllowUnsafe>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Collections.Generic"/>
+      <Reference name="System.Drawing"/>
+      <Reference name="System.Reflection"/>
+      <Reference name="Mono.Addins" path="../../../bin/"/>
+
+      <Reference name="OpenMetaverse" path="../../../bin/"/>
+      <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
+      <Reference name="OpenMetaverse.StructuredData" path="../../../bin/"/>
+      <Reference name="OpenMetaverse.Rendering.Meshmerizer" path="../../../bin/"/>
+
+      <Reference name="PrimMesher" path="../../../bin/"/>
+
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
+      <Reference name="OpenSim.Region.Framework"/>
+      <Reference name="OpenSim.Region.CoreModules"/>
+      <Reference name="OpenSim.Region.PhysicsModules.SharedBase"/>
+
+      <Reference name="CSJ2K" path="../../../bin/"/>
+      <Reference name="Nini" path="../../../bin/"/>
+      <Reference name="log4net" path="../../../bin/"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true">
+          <Exclude name="Tests" pattern="Tests"/>
+        </Match>
+        <Match path="../libs" pattern="*.dll" recurse="false" buildAction="Copy" destination="../../../bin/"/>
+        <Match path="../libs" pattern="*.pdb" recurse="false" buildAction="Copy" destination="../../../bin/"/>
+        <Match path="../libs" pattern="*.xml" recurse="false" buildAction="Copy" destination="../../../bin/"/>
+      </Files>
+    </Project>
