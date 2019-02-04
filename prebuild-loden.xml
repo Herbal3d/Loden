@@ -14,7 +14,6 @@
 
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
-      <Reference name="System.Collections.Generic"/>
       <Reference name="System.Drawing"/>
       <Reference name="System.Reflection"/>
       <Reference name="Mono.Addins" path="../../../bin/"/>
