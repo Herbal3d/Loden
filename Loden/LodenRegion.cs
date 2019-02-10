@@ -42,7 +42,7 @@ namespace org.herbal3d.Loden {
         public LodenRegion(Scene pScene, LodenContext pContext) {
         }
 
-        public async Task Start() {
+        public void Start() {
             
         }
 

@@ -37,6 +37,7 @@ namespace org.herbal3d.Loden {
 public class LodenContext {
     public IConfig sysConfig;
     public LodenParams parms;
+    public LodenStats stats;
     public ILog log;
     public string contextName;  // a unique identifier for this context -- used in filenames, ...
 
@@ -44,6 +45,7 @@ public class LodenContext {
         sysConfig = pSysConfig;
         parms = pParms;
         log = pLog;
+        stats = new LodenStats(this);
         contextName = String.Empty;
     }
 }

@@ -52,18 +52,18 @@ namespace org.herbal3d.Loden {
                 if (prim.Sculpt != null) {
                     if (prim.Sculpt.Type == OMV.SculptType.Mesh) {
                         // log.DebugFormat("{0}: CreateMeshResource: creating mesh", LogHeader);
-                        // stats.numMeshAssets++;
+                        _context.stats.numMeshAssets++;
                         mesh = await MeshFromPrimMeshData(sog, sop, prim, assetFetcher, lod);
                     }
                     else {
                         // m_log.DebugFormat("{0}: CreateMeshResource: creating sculpty", LogHeader);
-                        stats.numSculpties++;
+                        _context.stats.numSculpties++;
                         mesh = await MeshFromPrimSculptData(sog, sop, prim, assetFetcher, lod);
                     }
                 }
                 else {
                     // m_log.DebugFormat("{0}: CreateMeshResource: creating primshape", LogHeader);
-                    stats.numSimplePrims++;
+                    _context.stats.numSimplePrims++;
                     mesh = await MeshFromPrimShapeData(sog, sop, prim, lod);
                 }
             }

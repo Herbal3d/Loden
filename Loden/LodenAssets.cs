@@ -29,9 +29,9 @@ namespace org.herbal3d.Loden {
 
     // A Promise based interface to the asset fetcher
     public abstract class IAssetFetcher : IDisposable {
-        public abstract async Task<OMVA.AssetTexture> FetchTexture(EntityHandle handle);
-        public abstract async Task<Image> FetchTextureAsImage(EntityHandle handle);
-        public abstract async Task<byte[]> FetchRawAsset(EntityHandle handle);
+        public abstract Task<OMVA.AssetTexture> FetchTexture(OMV.UUID handle);
+        public abstract Task<Image> FetchTextureAsImage(OMV.UUID handle);
+        public abstract Task<byte[]> FetchRawAsset(OMV.UUID handle);
         public abstract void Dispose();
     }
 
@@ -46,18 +46,13 @@ namespace org.herbal3d.Loden {
             _context = pContext;
         }
 
-        public override async Task<byte[]> FetchRawAsset(EntityHandle handle) {
-
-            // Don't bother with async -- this call will hang until the asset is fetched
-            byte[] returnBytes = _scene.AssetService.GetData(handle.GetOSAssetString());
-            if (returnBytes.Length > 0) {
-                prom.Resolve(returnBytes);
+        public override async Task<byte[]> FetchRawAsset(OMV.UUID handle) {
+            AssetBase asset = await AssetServiceGetAsync(_scene, handle);
+            if (asset == null || asset.Data == null || asset.Data.Length == 0) {
+                throw new LodenException("{0} FetchRawAsset: could not fetch asset {1}",
+                            _logHeader, handle);
             }
-            else {
-                prom.Reject(new Exception(String.Format("{0} FetchRawAsset: could not fetch asset {1}",
-                                        _logHeader, handle.ToString())));
-            }
-            return returnBytes;
+            return asset.Data;
         }
 
         /// <summary>
@@ -66,28 +61,30 @@ namespace org.herbal3d.Loden {
         /// </summary>
         /// <param name="handle"></param>
         /// <returns></returns>
-        public override async Task<OMVA.AssetTexture> FetchTexture(EntityHandle handle) {
+        public override async Task<OMVA.AssetTexture> FetchTexture(OMV.UUID handle) {
 
-            // Don't bother with async -- this call will hang until the asset is fetched
-            AssetBase asset = _scene.AssetService.Get(handle.GetOSAssetString());
+            AssetBase asset = await AssetServiceGetAsync(_scene, handle);
             OMVA.AssetTexture tex = null;
-            if (asset.IsBinaryAsset && asset.Type == (sbyte)OMV.AssetType.Texture) {
-                tex = new OMVA.AssetTexture(handle.GetUUID(), asset.Data);
+            LodenException failure = null;
+            if (asset != null && asset.IsBinaryAsset && asset.Type == (sbyte)OMV.AssetType.Texture) {
+                tex = new OMVA.AssetTexture(handle, asset.Data);
                 try {
-                    if (tex.Decode()) {
-                        prom.Resolve(tex);
-                    }
-                    else {
-                        prom.Reject(new Exception("FetchTexture: could not decode JPEG2000 texture. ID=" + handle.ToString()));
+                    if (!tex.Decode()) {
+                        failure = new LodenException("{0}: FetchTexture: could not decode JPEG2000 texture. ID={1}",
+                                                _logHeader, handle);
                     }
                 }
                 catch (Exception e) {
-                    prom.Reject(new Exception("FetchTexture: exception decoding JPEG2000 texture. ID=" + handle.ToString()
-                                + ", e=" + e.ToString()));
+                    failure = new LodenException("{0}: FetchTexture: exception decoding JPEG2000 texture. ID={1}, e: {2}",
+                                _logHeader, handle, e);
                 }
             }
             else {
-                prom.Reject(new Exception("FetchTexture: asset was not of type texture. ID=" + handle.ToString()));
+                failure = new LodenException("{0}: FetchTexture: asset was not of type texture. ID={1}",
+                                _logHeader, handle);
+            }
+            if (failure != null) {
+                throw failure;
             }
 
             return tex;
@@ -99,16 +96,12 @@ namespace org.herbal3d.Loden {
         /// </summary>
         /// <param name="handle"></param>
         /// <returns></returns>
-        public override async Task<Image> FetchTextureAsImage(EntityHandle handle) {
+        public override async Task<Image> FetchTextureAsImage(OMV.UUID handle) {
 
             Image imageDecoded = null;
 
-            AssetBase asset = await Task.Run(() => {
-                _scene.AssetService.Get(handle.GetOSAssetString(), this, rasset => {
-                    return rasset;
-                });
-            });
-            // AssetBase asset = _scene.AssetService.Get(handle.GetOSAssetString());
+            AssetBase asset = await AssetServiceGetAsync(_scene, handle);
+            LodenException failure = null;
             if (asset != null) {
                 if (asset.IsBinaryAsset && asset.Type == (sbyte)OMV.AssetType.Texture) {
                     try {
@@ -118,28 +111,43 @@ namespace org.herbal3d.Loden {
                         }
                         else {
                             if (OpenJPEG.DecodeToImage(asset.Data, out ManagedImage mimage, out imageDecoded)) {
+                                // clean up unused object. Decoded image in 'imageDecoded'.
                                 mimage = null;
                             }
                             else {
                                 imageDecoded = null;
                             }
                         }
-                        prom.Resolve(imageDecoded);
                     }
                     catch (Exception e) {
-                        prom.Reject(new Exception("FetchTextureAsImage: exception decoding JPEG2000 texture. ID=" + handle.ToString()
-                                    + ", e=" + e.ToString()));
+                        failure = new LodenException("{0}: FetchTextureAsImage: exception decoding JPEG2000 texture. ID={1}: {2}",
+                                                _logHeader, handle, e);
                     }
                 }
                 else {
-                    prom.Reject(new Exception("FetchTextureAsImage: asset was not of type texture. ID=" + handle.ToString()));
+                    failure = new LodenException("{0}: FetchTextureAsImage: asset was not of type texture. ID={1}",
+                                            _logHeader, handle);
                 }
             }
             else {
-                prom.Reject(new Exception("FetchTextureAsImage: could not fetch texture asset. ID=" + handle.ToString()));
+                failure = new LodenException("{0}: FetchTextureAsImage: could not fetch texture asset. ID={1}",
+                                        _logHeader, handle);
+            }
+            if (failure != null) {
+                throw failure;
             }
 
             return imageDecoded;
+        }
+
+        // An async/await version of async call to OpenSimulator AssetService.
+        public async Task<AssetBase> AssetServiceGetAsync(Scene pScene, OMV.UUID pHandle) {
+            var tcs = new TaskCompletionSource<AssetBase>();
+            pScene.AssetService.Get(pHandle.ToString(), this, (rid, rsender, rasset) => {
+                tcs.SetResult(rasset);
+            });
+
+            return await tcs.Task;
         }
 
         public override void Dispose() {
