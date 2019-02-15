@@ -28,6 +28,8 @@ using OMVS = OpenMetaverse.StructuredData;
 using OMVA = OpenMetaverse.Assets;
 using OMVR = OpenMetaverse.Rendering;
 
+using org.herbal3d.cs.CommonEntitiesUtil;
+
 using log4net;
 using Nini.Config;
 
@@ -38,25 +40,25 @@ public class LodenContext {
     public IConfig sysConfig;
     public LodenParams parms;
     public LodenStats stats;
-    public ILog log;
+    public BLogger log;
     public string contextName;  // a unique identifier for this context -- used in filenames, ...
 
     public LodenContext(IConfig pSysConfig, LodenParams pParms, ILog pLog) {
         sysConfig = pSysConfig;
         parms = pParms;
-        log = pLog;
+        log = new LoggerLog4Net(pLog);
         stats = new LodenStats(this);
         contextName = String.Empty;
     }
 }
 
 [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "LodenModule")]
-    public class LodenModule : ISharedRegionModule {
+    public class LodenModule : INonSharedRegionModule {
         private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly String _logHeader = "[LodenModule]";
 
         private LodenContext _context;
-        private List<Scene> _scenes = new List<Scene>();
+        private Scene _scene;
         private List<LodenRegion> _regionProcessors = new List<LodenRegion>();
 
         // IRegionModuleBase.Name
@@ -68,15 +70,15 @@ public class LodenContext {
 
         // IRegionModuleBase.Initialize
         public void Initialise(IConfigSource pConfig) {
-            var lodenParams = new LodenParams();
             var sysConfig = pConfig.Configs["Loden"];
+            _context = new LodenContext(sysConfig, null, _log);
+            _context.parms  = new LodenParams(_context);
             if (sysConfig != null) {
-                lodenParams.SetParameterConfigurationValues(sysConfig);
+                _context.parms.SetParameterConfigurationValues(sysConfig);
             }
-            if (lodenParams.Enabled) {
+            if (_context.parms.Enabled) {
                 _log.InfoFormat("{0} Enabled", _logHeader);
             }
-            _context = new LodenContext(sysConfig, lodenParams, _log);
         }
         //
         // IRegionModuleBase.Close
@@ -94,17 +96,15 @@ public class LodenContext {
         }
 
         // IRegionModuleBase.AddRegion
-        // Called once for each region loaded.
+        // Called once for the region we're managing.
         public void AddRegion(Scene pScene) {
             // Remember all the loaded scenes
-            if (!_scenes.Contains(pScene)) {
-                _scenes.Add(pScene);
-            }
+            _scene = pScene;
         }
 
         // IRegionModuleBase.RemoveRegion
         public void RemoveRegion(Scene pScene) {
-            _scenes.Remove(pScene);
+            _scene = null;
         }
 
         // IRegionModuleBase.RegionLoaded
@@ -117,15 +117,13 @@ public class LodenContext {
         // Called once after all shared regions have been initialized
         public void PostInitialise() {
             if (_context.parms.Enabled) {
-                // Start a processing  thread for each of the scenes
-                _scenes.ForEach( scene => {
-                    Task.Run(() => {
-                        var processor = new LodenRegion(scene, _context);
-                        lock (_regionProcessors) {
-                            _regionProcessors.Add(processor);
-                        }
-                        processor.Start();
-                    });
+                // Start a processing  thread for the region we're managing
+                Task.Run(async () => {
+                    var processor = new LodenRegion(_scene, _context);
+                    lock (_regionProcessors) {
+                        _regionProcessors.Add(processor);
+                    }
+                    await processor.Start();
                 });
             }
         }

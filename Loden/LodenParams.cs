@@ -19,13 +19,17 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 
+using org.herbal3d.cs.CommonEntitiesUtil;
+
 using Nini.Config;
 
 namespace org.herbal3d.Loden {
-    public class LodenParams {
+    public class LodenParams : IParameters {
         private static readonly string _logHeader = "[LODEN PARAMS]";
+        private readonly LodenContext _context;
 
-        public LodenParams() {
+        public LodenParams(LodenContext pContext) {
+            _context = pContext;
             SetParameterDefaultValues();
         }
 
@@ -36,6 +40,7 @@ namespace org.herbal3d.Loden {
         public bool MergeNonStaticMeshes;      // whether to merge meshes with non-static entities
 
         public string GltfTargetDir;    // where to store all the Gltf files
+        public string LodenAssetDir;    // base of Logan asset storage
         public bool ExportTextures;     // also export textures to the target dir
         public int MaxTextureSize;      // the maximum pixel dimension for images if exporting
         public bool AddTerrainMesh;     // whether to create and add a terrain mesh
@@ -83,8 +88,9 @@ namespace org.herbal3d.Loden {
                 true ),
             new ParameterDefn<bool>("MergeNonStaticMeshes", "whether to merge meshes within non-static entities ",
                 true ),
-            new ParameterDefn<string>("GltfTargetDir", "Where to store all the Gltf files",
-                "./gltf" ),
+            new ParameterDefn<string>("LodenAssetDir", "Base directory for Loden asset storage",
+                "./Loden" ),
+
             new ParameterDefn<bool>("ExportTextures", "Convert textures to PNGs and export to target dir",
                 true ),
             new ParameterDefn<int>("MaxTextureSize", "The maximum pixel dimension for images if exporting",
@@ -164,13 +170,16 @@ namespace org.herbal3d.Loden {
                 if (prop == null)
                 {
                     // This should only be output when someone adds a new INI parameter and misspells the name.
-                    // m_log.ErrorFormat("{0} SetValueByName: did not find '{1}'. Verify specified property name is the same as the given INI parameters name.", _logHeader, pName);
+                    // _context.log.ErrorFormat("{0} SetValueByName: did not find '{1}'. Verify specified property name is the same as the given INI parameters name.", _logHeader, pName);
                     System.Console.WriteLine("{0} SetValueByName: did not find '{1}'. Verify specified field name is the same as the given INI parameters name.", _logHeader, pName);
                 }
                 else
                 {
                     prop.SetValue(context, val);
                 }
+            }
+            public T Value() {
+                return getter();
             }
             // Use reflection to find the property named 'pName' in Param and return the value in same.
             private T GetValueByName(string pName)
@@ -179,7 +188,7 @@ namespace org.herbal3d.Loden {
                 if (prop == null)
                 {
                     // This should only be output when someone adds a new INI parameter and misspells the name.
-                    // m_log.ErrorFormat("{0} GetValueByName: did not find '{1}'. Verify specified property name is the same as the given INI parameter name.", _logHeader, pName);
+                    // _context.log.log.ErrorFormat("{0} GetValueByName: did not find '{1}'. Verify specified property name is the same as the given INI parameter name.", _logHeader, pName);
                     System.Console.WriteLine("{0} GetValueByName: did not find '{1}'. Verify specified field name is the same as the given INI parameter name.", _logHeader, pName);
                 }
                 return (T)prop.GetValue(context);
@@ -215,18 +224,35 @@ namespace org.herbal3d.Loden {
                         T setValue = (T)parser.Invoke(genericType, new Object[] { valAsString });
                         // Store the parsed value
                         setter(setValue);
-                        // // m_log.DebugFormat("{0} Parameter {1} = {2}", _logHeader, name, setValue);
+                        // // _context.log.DebugFormat("{0} Parameter {1} = {2}", _logHeader, name, setValue);
                     }
                     catch
                     {
-                        // m_log.ErrorFormat("{0} Failed parsing parameter value '{1}' as type '{2}'", _logHeader, valAsString, genericType);
+                        // _context.log.ErrorFormat("{0} Failed parsing parameter value '{1}' as type '{2}'", _logHeader, valAsString, genericType);
                     }
                 }
                 else
                 {
-                    // m_log.ErrorFormat("{0} Could not find parameter parser for type '{1}'", _logHeader, genericType);
+                    // _context.log.ErrorFormat("{0} Could not find parameter parser for type '{1}'", _logHeader, genericType);
                 }
             }
+        }
+
+        // Return a value for the parameter.
+        // This is used by most callers to get parameter values.
+        // Note that it outputs a console message if not found. Not found means that the caller
+        //     used the wrong string name.
+        public T P<T>(string paramName) {
+            T ret = default(T);
+            if (TryGetParameter(paramName, out ParameterDefnBase pbase)) {
+                if (pbase is ParameterDefn<T> pdef) {
+                    ret = pdef.Value();
+                }
+                else {
+                    _context.log.ErrorFormat("{0} Fetched unknown parameter. Param={1}", _logHeader, paramName);
+                }
+            }
+            return ret;
         }
 
         // Search through the parameter definitions and return the matching
