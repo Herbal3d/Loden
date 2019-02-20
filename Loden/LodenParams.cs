@@ -52,6 +52,8 @@ namespace org.herbal3d.Loden {
         public bool DisplayTimeScaling; // 'true' if to delay mesh scaling to display/GPU time
 
         public string URIBase;          // the URI base to be added to the beginning of the asset name
+        public bool UseReadableFilenames;   // Whether filenames should be human readable or UUIDs
+        public bool UseDeepFilenames;       // Whether filenames be organized into a deep directory structure
 
         public bool UseOpenSimImageDecoder; //  Use the OpenSimulator image decoder to process JPEG2000 images
 
@@ -80,35 +82,46 @@ namespace org.herbal3d.Loden {
         //
         // The single letter parameters for the delegates are:
         //    v = value (appropriate type)
-        private ParameterDefnBase[] ParameterDefinitions =
+        private readonly ParameterDefnBase[] ParameterDefinitions =
         {
             new ParameterDefn<bool>("Enabled", "If false, module is not enabled to operate",
                 false ),
+
             new ParameterDefn<bool>("MergeStaticMeshes", "whether to merge meshes with similar materials",
                 true ),
             new ParameterDefn<bool>("MergeNonStaticMeshes", "whether to merge meshes within non-static entities ",
                 true ),
+            new ParameterDefn<int>("VerticesMaxForBuffer", "Number of vertices to cause splitting of buffer files",
+                50000 ),
+
             new ParameterDefn<string>("LodenAssetDir", "Base directory for Loden asset storage",
                 "./Loden" ),
+            new ParameterDefn<string>("URIBase", "the string added to be beginning of asset name to create URI",
+                "./" ),
+            new ParameterDefn<bool>("UseReadableFilenames", "Whether filenames should be human readable or UUIDs",
+                false ),
+            new ParameterDefn<bool>("UseDeepFilenames", "Whether filenames be organized into a deep directory structure",
+                true ),
+            new ParameterDefn<bool>("WriteBinaryGltf", "Whether to write .gltf or .glb file",
+                false ),
+
+            new ParameterDefn<bool>("AddTerrainMesh", "whether to create and add a terrain mesh",
+                true ),
+            new ParameterDefn<bool>("CreateTerrainSplat", "whether to generate a terrain mesh splat texture",
+                true ),
+            new ParameterDefn<bool>("HalfRezTerrain", "Whether to reduce the terrain resolution by 2",
+                false ),
 
             new ParameterDefn<bool>("ExportTextures", "Convert textures to PNGs and export to target dir",
                 true ),
             new ParameterDefn<int>("MaxTextureSize", "The maximum pixel dimension for images if exporting",
                 256 ),
-            new ParameterDefn<bool>("AddTerrainMesh", "whether to create and add a terrain mesh",
-                true ),
-            new ParameterDefn<bool>("CreateTerrainSplat", "whether to generate a terrain mesh splat texture",
-                true ),
-            new ParameterDefn<int>("VerticesMaxForBuffer", "Number of vertices to cause splitting of buffer files",
-                50000 ),
-            new ParameterDefn<bool>("HalfRezTerrain", "Whether to reduce the terrain resolution by 2",
-                false ),
+
             new ParameterDefn<bool>("DisplayTimeScaling", "If to delay mesh scaling to display/GPU time",
                 false ),
-            new ParameterDefn<string>("URIBase", "the string added to be beginning of asset name to create URI",
-                "./" ),
             new ParameterDefn<bool>("UseOpenSimImageDecoder", "Use the OpenSimulator image decoder to process JPEG2000 images",
                 false ),
+
             new ParameterDefn<bool>("LogConversionStats", "output numbers about number of entities converted",
                 true ),
             new ParameterDefn<bool>("LogDetailedSharedFaceStats", "output numbers about face mesh sharing",
@@ -144,9 +157,9 @@ namespace org.herbal3d.Loden {
         public delegate void PSetValue<T>(T val);
         public sealed class ParameterDefn<T> : ParameterDefnBase
         {
-            private T defaultValue;
+            private readonly T defaultValue;
             private PSetValue<T> setter;
-            private PGetValue<T> getter;
+            private readonly PGetValue<T> getter;
             public ParameterDefn(string pName, string pDesc, T pDefault, PGetValue<T> pGetter, PSetValue<T> pSetter)
                 : base(pName, pDesc)
             {

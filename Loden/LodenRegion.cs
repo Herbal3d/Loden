@@ -17,6 +17,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Mono.Addins;
+using System.IO;
 
 using OpenSim.Framework;
 using OpenSim.Region.CoreModules.World.LegacyMap;
@@ -51,6 +52,7 @@ namespace org.herbal3d.Loden {
 
             // Subscribe to changes in the region so we know when to start rebuilding
 
+            _context.log.DebugFormat("{0} Enter", _logHeader);
             // Create a region hash and build content tables
             Dictionary<OMV.UUID, BHash> sogHashes = new Dictionary<OMV.UUID, BHash>();
             BHasher regionHasher = new BHasherSHA256();
@@ -61,14 +63,40 @@ namespace org.herbal3d.Loden {
                 regionHasher.Add(sogHash.ToBytes(), 0, sogHash.ToBytes().Length);
             }
             BHash regionHash = regionHasher.Finish();
-            LHandle regionHandle = await _assetTools.GetHandle(regionHash);
-            if (regionHandle == null) {
+            _context.log.DebugFormat("{0} Computed region hash: {1}", _logHeader, regionHash.ToString());
+
+            // See if region specification file has been built
+            string regionIdentifier = _scene.RegionInfo.RegionID.ToString().Replace("-", "");
+            string specFileDir = PersistRules.StorageDirectory(regionIdentifier, _context.parms);
+            string specFilename = Path.Combine(specFileDir, regionIdentifier + ".json");
+            if (!File.Exists(specFilename)) {
                 // The region has not been built.
+                BScene bScene = null;
                 using (AssetManager assetManager = new OSAssetFetcher(_scene.AssetService, _context.log, _context.parms)) {
-                    BConverterOS converter = new BConverterOS(_context.log, _context.parms);
-                    BScene bScene = await converter.ConvertRegionToBScene(_scene, assetManager);
-                    Gltf gltf = new Gltf(_scene.Name, _context.log, _context.parms);
-                    gltf.LoadScene(bScene, assetManager);
+                    try {
+                        BConverterOS converter = new BConverterOS(_context.log, _context.parms);
+                        bScene = await converter.ConvertRegionToBScene(_scene, assetManager);
+                    }
+                    catch (Exception e) {
+                        _context.log.ErrorFormat("{0} Exeception converting region to BScene: {1}", _logHeader, e);
+                    }
+                    Gltf gltf = null;
+                    try {
+                        gltf = new Gltf(_scene.Name, _context.log, _context.parms);
+                        gltf.LoadScene(bScene, assetManager);
+                    }
+                    catch (Exception e) {
+                        _context.log.ErrorFormat("{0} Exeception loading scene into Gltf: {1}", _logHeader, e);
+                    }
+                    if (gltf != null) {
+                        string regionTopNodeDir = "yy";
+                        string regionTopNodeFilename = Path.Combine(regionTopNodeDir, _scene.RegionInfo.RegionID.ToString() + ".gltf");
+                        using (StreamWriter outt = File.CreateText(regionTopNodeFilename)) {
+                            gltf.ToJSON(outt);
+                            gltf.WriteBinaryFiles();
+                            gltf.WriteImages();
+                        }
+                    }
                 }
             }
 

@@ -38,6 +38,9 @@ namespace org.herbal3d.Loden {
             Hash = pHash;
             Dir = pDir;
         }
+        public override string ToString() {
+            return Path.Combine(Dir, Hash.ToString());
+        }
     }
 
     // An async interface to the asset fetcher
@@ -57,7 +60,10 @@ namespace org.herbal3d.Loden {
         // If there is no SOG info in the database, return 'null'.
         public async Task<LHandle> GetHandle(BHash pHash) {
             LHandle ret = null;
-            string dir = BaseHashToDirectory(pHash.ToString());
+            string filename = PersistRules.GetFilename(PersistRules.AssetType.Scene,
+                                _scene.RegionInfo.RegionName, pHash.ToString(), _context.parms);
+            filename = Path.GetFileNameWithoutExtension(filename);
+            string dir = PersistRules.StorageDirectory(pHash.ToString(), _context.parms);
             // heavy handed async stuff but the checks for existance could take a while
             if (await Task.Run(() => {
                 return Directory.Exists(dir) &&
@@ -68,21 +74,6 @@ namespace org.herbal3d.Loden {
             }
             return ret;
         }
-
-        private string BaseHashToDirectory(string pHash) {
-            string ret = pHash;
-            if (pHash.Length >= 10) {
-                ret = Path.Combine(_context.parms.LodenAssetDir,
-                        Path.Combine(pHash.Substring(0, 2),
-                            Path.Combine(pHash.Substring(2, 2),
-                                Path.Combine(pHash.Substring(4, 2),
-                                    Path.Combine(pHash.Substring(6, 4),
-                                        pHash
-                        )))));
-            }
-            return ret;
-        }
-
     }
 
 

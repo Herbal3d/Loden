@@ -34,7 +34,11 @@ namespace org.herbal3d.Loden {
             _message = String.Format(msg, pParams);
         }
 
-        public override string Message => _message;
+        public override string Message {
+            get {
+                return _message;
+            }
+        }
 
         public override string ToString() {
             StringBuilder buff = new StringBuilder();
