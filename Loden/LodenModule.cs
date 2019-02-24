@@ -74,9 +74,9 @@ namespace org.herbal3d.Loden {
             _context = new LodenContext(sysConfig, null, _log);
             _context.parms  = new LodenParams(_context);
             if (sysConfig != null) {
-                _context.parms.SetParameterConfigurationValues(sysConfig);
+                _context.parms.SetParameterConfigurationValues(sysConfig, _context);
             }
-            if (_context.parms.Enabled) {
+            if (_context.parms.P<bool>("Enabled")) {
                 _log.InfoFormat("{0} Enabled", _logHeader);
             }
         }
@@ -108,7 +108,7 @@ namespace org.herbal3d.Loden {
         // IRegionModuleBase.RegionLoaded
         // Called once for each region loaded after all other regions have been loaded.
         public void RegionLoaded(Scene scene) {
-            if (_context.parms.Enabled) {
+            if (_context.parms.P<bool>("Enabled")) {
                 // Start a processing  thread for the region we're managing
                 _regionProcessor = new LodenRegion(_scene, _context);
                 _regionProcessor.Start();

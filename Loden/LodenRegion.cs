@@ -91,12 +91,15 @@ namespace org.herbal3d.Loden {
             _context.log.DebugFormat("{0} SOGs in region: {1}", _logHeader, _scene.GetSceneObjectGroups().Count);
             _context.log.DebugFormat("{0} Computed region hash: {1}", _logHeader, regionHash.ToString());
 
-            // See if region specification file has been built
+            // Cleaned up region identifier
             string regionIdentifier = _scene.RegionInfo.RegionID.ToString().Replace("-", "");
-            string specFileDir = PersistRules.StorageDirectory(regionIdentifier, _context.parms);
-            string specFilename = Path.Combine(specFileDir, regionIdentifier + ".json");
-            if (!File.Exists(specFilename)) {
+
+            // See if region specification file has been built
+            string absSpecFilename = CreateAbsFilePath(regionIdentifier + ".json", _context.parms);
+            _context.log.DebugFormat("{0}: region spec filename={1}", _logHeader, absSpecFilename);
+            if (!File.Exists(absSpecFilename)) {
                 // The region has not been built.
+                _context.log.DebugFormat("{0}: region spec file does not exist. Rebuilding", _logHeader);
                 BScene bScene = null;
                 using (AssetManager assetManager = new OSAssetFetcher(_scene.AssetService, _context.log, _context.parms)) {
                     try {
@@ -115,12 +118,17 @@ namespace org.herbal3d.Loden {
                         _context.log.ErrorFormat("{0} Exeception loading scene into Gltf: {1}", _logHeader, e);
                     }
                     if (gltf != null) {
-                        string regionTopNodeDir = "yy";
-                        string regionTopNodeFilename = Path.Combine(regionTopNodeDir, _scene.RegionInfo.RegionID.ToString() + ".gltf");
-                        using (StreamWriter outt = File.CreateText(regionTopNodeFilename)) {
-                            gltf.ToJSON(outt);
+                        string absTopLevelFilename = CreateAbsFilePath(regionIdentifier + ".gltf", _context.parms);
+                        _context.log.DebugFormat("{0}: writing top level region GLTF to {1}", _logHeader, absTopLevelFilename);
+                        try {
+                            using (StreamWriter outt = File.CreateText(absTopLevelFilename)) {
+                                gltf.ToJSON(outt);
+                            }
                             gltf.WriteBinaryFiles();
                             gltf.WriteImages();
+                        }
+                        catch (Exception e) {
+                            _context.log.ErrorFormat("{0} Exeception writing top level GLTF files: {1}", _logHeader, e);
                         }
                     }
                 }
@@ -136,6 +144,14 @@ namespace org.herbal3d.Loden {
 
             // Wait for changes and do rebuilds of necessary
             
+        }
+
+        // Given a target filename, return the absolute path to a created storage filename.
+        private string CreateAbsFilePath(string pFilename, IParameters pParams) {
+            string strippedStorageName = Path.GetFileNameWithoutExtension(pFilename);
+            string storageDir = PersistRules.StorageDirectory(strippedStorageName, pParams);
+            string absCreatedDir = PersistRules.CreateDirectory(storageDir, pParams);
+            return Path.Combine(absCreatedDir, pFilename);
         }
 
         // Create a uniquifying hash for this SOG

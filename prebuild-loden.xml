@@ -41,7 +41,9 @@
       <Files>
         <Match pattern="*.cs" recurse="true">
           <Exclude name="Tests" pattern="Tests"/>
+          <Exclude name="Object" pattern="obj"/>
         </Match>
-        <Match path="../../convoar/dist" pattern="CommonEntities*.dll" recurse="false" buildAction="Copy" destination="../../../bin/"/>
+        <Match path="../libs" pattern="CommonEntities*.dll" recurse="false" buildAction="Copy" destination="../../../bin/"/>
+        <Match path="../libs" pattern="CommonEntities*.pdb" recurse="false" buildAction="Copy" destination="../../../bin/"/>
       </Files>
     </Project>
