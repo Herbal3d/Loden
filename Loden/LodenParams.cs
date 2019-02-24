@@ -81,8 +81,6 @@ namespace org.herbal3d.Loden {
             new ParameterDefn<bool>("HalfRezTerrain", "Whether to reduce the terrain resolution by 2",
                 false ),
 
-            new ParameterDefn<bool>("ExportTextures", "Convert textures to PNGs and export to target dir",
-                true ),
             new ParameterDefn<int>("TextureMaxSize", "The maximum pixel dimension for images if exporting",
                 256 ),
            new ParameterDefn<string>("PreferredTextureFormat", "One of: PNG, JPG, GIF, BMP",
@@ -94,17 +92,9 @@ namespace org.herbal3d.Loden {
                 true ),
             new ParameterDefn<bool>("DisplayTimeScaling", "If to delay mesh scaling to display/GPU time",
                 false ),
-            new ParameterDefn<bool>("UseOpenSimImageDecoder", "Use the OpenSimulator image decoder to process JPEG2000 images",
-                false ),
 
             new ParameterDefn<bool>("LogBuilding", "log detail BScene/BInstance object building",
                 true ),
-            new ParameterDefn<bool>("LogConversionStats", "output numbers about number of entities converted",
-                true ),
-            new ParameterDefn<bool>("LogDetailedSharedFaceStats", "output numbers about face mesh sharing",
-                true ),
-            new ParameterDefn<bool>("LogDetailedEntityInfo", "output detailed information about each entity",
-                false ),
             new ParameterDefn<bool>("LogGltfBuilding", "output detailed gltf construction details",
                 false ),
         };
