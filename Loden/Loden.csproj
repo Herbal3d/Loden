@@ -1,4 +1,4 @@
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="14.0">
+<Project DefaultTargets="Build;CopyFiles" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="14.0">
 	<PropertyGroup>
 	  <ProjectType>Local</ProjectType>
 	  <ProductVersion>14.0.23107.0</ProductVersion>
@@ -67,12 +67,12 @@
 	<ItemGroup>
 	  <Reference Include="CommonEntities" >
 		  <Name>CommonEntities</Name>
-		<HintPath>..\convoar\dist\CommonEntities.dll</HintPath>
+		<HintPath>..\..\..\bin\CommonEntities.dll</HintPath>
 		<Private>False</Private>
 	  </Reference>
 	  <Reference Include="CommonEntitiesUtil" >
 		  <Name>CommonEntitiesUtil</Name>
-		<HintPath>..\convoar\dist\CommonEntitiesUtil.dll</HintPath>
+		<HintPath>..\..\..\bin\CommonEntitiesUtil.dll</HintPath>
 		<Private>False</Private>
 	  </Reference>
 	  <Reference Include="CSJ2K" >
@@ -193,16 +193,16 @@
 	  <Compile Include="obj\Debug\TemporaryGeneratedFile_E7A71F73-0F8D-4B9B-B56E-8E70B10BC5D3.cs">
 		<SubType>Code</SubType>
 	  </Compile>
-	  <Compile Include="obj\Release\TemporaryGeneratedFile_036C0B5B-1481-4323-8D20-8F5ADCB23D92.cs">
-		<SubType>Code</SubType>
-	  </Compile>
-	  <Compile Include="obj\Release\TemporaryGeneratedFile_5937a670-0e60-4077-877b-f7221da3dda1.cs">
-		<SubType>Code</SubType>
-	  </Compile>
-	  <Compile Include="obj\Release\TemporaryGeneratedFile_E7A71F73-0F8D-4B9B-B56E-8E70B10BC5D3.cs">
+	  <Compile Include="Properties\AssemblyInfo.cs">
 		<SubType>Code</SubType>
 	  </Compile>
   </ItemGroup>
+  <ItemGroup>
+    <FilesToCopy_0000 Include="..\..\convoar\dist\CommonEntities.dll;..\..\convoar\dist\CommonEntitiesUtil.dll" />
+  </ItemGroup>
+  <Target Name="CopyFiles">
+    <Copy SourceFiles="@(FilesToCopy_0000)" DestinationFolder="../../../bin/" />
+  </Target>
 	<Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 	<PropertyGroup>
 	  <PreBuildEvent>

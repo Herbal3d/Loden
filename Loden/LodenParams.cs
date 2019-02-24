@@ -45,21 +45,23 @@ namespace org.herbal3d.Loden {
         public int MaxTextureSize;      // the maximum pixel dimension for images if exporting
         public bool AddTerrainMesh;     // whether to create and add a terrain mesh
         public bool CreateTerrainSplat; // whether to generate a terrain mesh splat texture
+        public bool WriteBinaryGltf;    // whether to write a GLB file rather than GLTF
 
-        public int VerticesMaxForBuffer;    // Number of vertices to cause splitting of buffer files
-        public bool HalfRezTerrain;     // whether to reduce the terrain resolution by 2
+        public int VerticesMaxForBuffer;        // Number of vertices to cause splitting of buffer files
+        public bool HalfRezTerrain;             // whether to reduce the terrain resolution by 2
 
-        public bool DisplayTimeScaling; // 'true' if to delay mesh scaling to display/GPU time
+        public bool DisplayTimeScaling;         // 'true' if to delay mesh scaling to display/GPU time
 
-        public string URIBase;          // the URI base to be added to the beginning of the asset name
-        public bool UseReadableFilenames;   // Whether filenames should be human readable or UUIDs
-        public bool UseDeepFilenames;       // Whether filenames be organized into a deep directory structure
+        public string URIBase;                  // the URI base to be added to the beginning of the asset name
+        public bool UseReadableFilenames;       // Whether filenames should be human readable or UUIDs
+        public bool UseDeepFilenames;           // Whether filenames be organized into a deep directory structure
 
-        public bool UseOpenSimImageDecoder; //  Use the OpenSimulator image decoder to process JPEG2000 images
+        public bool UseOpenSimImageDecoder;     //  Use the OpenSimulator image decoder to process JPEG2000 images
 
-        public bool LogConversionStats; // output numbers about number of entities converted
+        public bool LogConversionStats;         // output numbers about number of entities converted
         public bool LogDetailedSharedFaceStats; // output numbers about face mesh sharing
         public bool LogDetailedEntityInfo;      // output detailed information about each entity
+        public bool LogGltfBuilding;            // output detailed gltf building info
         #pragma warning restore CS0649
 
         // =====================================================================================
@@ -127,6 +129,8 @@ namespace org.herbal3d.Loden {
             new ParameterDefn<bool>("LogDetailedSharedFaceStats", "output numbers about face mesh sharing",
                 true ),
             new ParameterDefn<bool>("LogDetailedEntityInfo", "output detailed information about each entity",
+                false ),
+            new ParameterDefn<bool>("LogGltfBuilding", "output detailed gltf construction details",
                 false ),
         };
 
@@ -306,9 +310,12 @@ namespace org.herbal3d.Loden {
         {
             foreach (ParameterDefnBase parm in ParameterDefinitions)
             {
-                System.Console.WriteLine("{0}: parm={1}, desc='{2}'", _logHeader, parm.name, parm.desc);
+                // _context.log.DebugFormat("{0}: parm={1}, desc='{2}'", _logHeader, parm.name, parm.desc);
                 parm.context = this;
-                parm.SetValue(cfg.GetString(parm.name, parm.GetValue()));
+                string configValue = cfg.GetString(parm.name, parm.GetValue());
+                if (!String.IsNullOrEmpty(configValue)) {
+                    parm.SetValue(cfg.GetString(parm.name, parm.GetValue()));
+                }
             }
         }
     }

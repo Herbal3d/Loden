@@ -31,8 +31,8 @@
       <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Region.PhysicsModules.SharedBase"/>
 
-      <Reference name="CommonEntitiesUtil" path="../convoar/dist/"/>
-      <Reference name="CommonEntities" path="../convoar/dist/"/>
+      <Reference name="CommonEntitiesUtil" path="../../../bin/"/>
+      <Reference name="CommonEntities" path="../../../bin/"/>
 
       <Reference name="CSJ2K" path="../../../bin/"/>
       <Reference name="Nini" path="../../../bin/"/>
@@ -42,8 +42,6 @@
         <Match pattern="*.cs" recurse="true">
           <Exclude name="Tests" pattern="Tests"/>
         </Match>
-        <Match path="../libs" pattern="*.dll" recurse="false" buildAction="Copy" destination="../../../bin/"/>
-        <Match path="../libs" pattern="*.pdb" recurse="false" buildAction="Copy" destination="../../../bin/"/>
-        <Match path="../libs" pattern="*.xml" recurse="false" buildAction="Copy" destination="../../../bin/"/>
+        <Match path="../../convoar/dist" pattern="CommonEntities*.dll" recurse="false" buildAction="Copy" destination="../../../bin/"/>
       </Files>
     </Project>

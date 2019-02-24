@@ -42,12 +42,37 @@ namespace org.herbal3d.Loden {
         private readonly Scene _scene;
         private readonly LodenContext _context;
         private LodenAssets _assetTools;
+        private bool _running;  // 'true' if should be doing stuff
 
         // Given a scene, do the LOD ("level of detail") conversion
         public LodenRegion(Scene pScene, LodenContext pContext) {
+            _scene = pScene;
+            _context = pContext;
+            _running = false;
         }
 
-        public async Task Start() {
+
+        public void Start() {
+            _running = true;
+            // Wait for the region to have all its content before scanning
+            _scene.EventManager.OnPrimsLoaded += Event_OnPrimsLoaded;
+        }
+
+        public void Shutdown() {
+            _running = false;
+            _scene.EventManager.OnPrimsLoaded -= Event_OnPrimsLoaded;
+        }
+
+        // All prims have been loaded into the region.
+        // Verify they have been converted into the LOD'ed versions.
+        private void Event_OnPrimsLoaded(Scene pScene) {
+            // Loading is going to take a while. Start up a Task.
+            Task.Run(async () => {
+                await ConvertRegionAssets(pScene);
+            });
+        }
+
+        private async Task ConvertRegionAssets(Scene pScene) {
             _assetTools = new LodenAssets(_scene, _context);
 
             // Subscribe to changes in the region so we know when to start rebuilding
@@ -63,6 +88,7 @@ namespace org.herbal3d.Loden {
                 regionHasher.Add(sogHash.ToBytes(), 0, sogHash.ToBytes().Length);
             }
             BHash regionHash = regionHasher.Finish();
+            _context.log.DebugFormat("{0} SOGs in region: {1}", _logHeader, _scene.GetSceneObjectGroups().Count);
             _context.log.DebugFormat("{0} Computed region hash: {1}", _logHeader, regionHash.ToString());
 
             // See if region specification file has been built
@@ -132,10 +158,6 @@ namespace org.herbal3d.Loden {
             hasher.Add(rot.Z);
             hasher.Add(rot.W);
             
-        }
-
-        // Called when this processor should stop doing its work
-        public void Shutdown() {
         }
     }
 }
