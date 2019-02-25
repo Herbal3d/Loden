@@ -68,6 +68,10 @@ namespace org.herbal3d.Loden {
                 true ),
             new ParameterDefn<bool>("WriteBinaryGltf", "Whether to write .gltf or .glb file",
                 false ),
+           new ParameterDefn<string>("GltfCopyright", "Copyright notice embedded into generated GLTF files",
+                "Copyright 2019. All rights reserved" ),
+            new ParameterDefn<string>("ConvoarID", "GUID used for CreatorID, ... (new terrain and images)",
+                "e1f5686f-05a8-44f7-aae4-551733b07551"),
 
             new ParameterDefn<int>("VerticesMaxForBuffer", "Number of vertices to cause splitting of buffer files",
                 50000 ),
