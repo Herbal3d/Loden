@@ -94,24 +94,24 @@ namespace org.herbal3d.Loden {
             // Cleaned up region identifier
             string regionIdentifier = _scene.RegionInfo.RegionID.ToString().Replace("-", "");
 
-            // See if region specification file has been built
-            string absSpecFilename = CreateAbsFilePath(regionIdentifier + ".json", _context.parms);
-            string specURI = CreateFileURI(regionIdentifier + ".json", _context.parms);
-            _context.log.DebugFormat("{0}: region spec filename={1}", _logHeader, absSpecFilename);
-            if (!File.Exists(absSpecFilename)) {
-                // The region has not been built.
-                using (AssetManager assetManager = new OSAssetFetcher(_scene.AssetService, _context.log, _context.parms)) {
+            using (AssetManager assetManager = new AssetManager(_scene.AssetService, _context.log, _context.parms)) {
+                // See if region specification file has been built
+                string specFilename = regionIdentifier + ".json";
+                string specURI = CreateFileURI(regionIdentifier + ".json", _context.parms);
+                string regionSpec = await assetManager.AssetStorage.FetchText(specFilename);
+                if (String.IsNullOrEmpty(regionSpec)) {
+                    // The region has not been built.
                     _context.log.DebugFormat("{0}: region spec file does not exist. Rebuilding", _logHeader);
                     BScene bScene = await ConvertSceneToBScene(assetManager);
 
                     LHandle topLevelHandle = await WriteOutLevel(regionHash, bScene, assetManager);
 
                     _context.log.DebugFormat("{0} Writing region spec. URI={1}", _logHeader, specURI);
-                    LHandle regionSpecFile = await WriteRegionSpec(absSpecFilename, specURI, topLevelHandle);
+                    LHandle regionSpecFile = await WriteRegionSpec(assetManager, specFilename, specURI, topLevelHandle);
                 }
-            }
-            else {
-                _context.log.DebugFormat("{0}: region spec file exists.", _logHeader);
+                else {
+                    _context.log.DebugFormat("{0}: region spec file exists.", _logHeader);
+                }
             }
 
             // Partition region and verify all partitions have been created and not different.
@@ -139,7 +139,7 @@ namespace org.herbal3d.Loden {
         private Task<LHandle> WriteOutLevel(BHash pLevelHash, BScene pBScene, AssetManager pAssetManager) {
             return Task<LHandle>.Run(() => {
                 Gltf gltf = null;
-                string absTopLevelFilename = String.Empty;
+                string topLevelFilename = String.Empty;
                 try {
                     gltf = new Gltf(_scene.Name, _context.log, _context.parms);
                     gltf.LoadScene(pBScene, pAssetManager);
@@ -150,14 +150,17 @@ namespace org.herbal3d.Loden {
                     throw new Exception(emsg);
                 }
                 if (gltf != null) {
-                    absTopLevelFilename = CreateAbsFilePath(pLevelHash.ToString() + ".gltf", _context.parms);
-                    _context.log.DebugFormat("{0}: writing top level region GLTF to {1}", _logHeader, absTopLevelFilename);
+                    topLevelFilename = pLevelHash.ToString() + ".gltf";
+                    _context.log.DebugFormat("{0}: writing top level region GLTF to {1}", _logHeader, topLevelFilename);
                     try {
-                        using (StreamWriter outt = File.CreateText(absTopLevelFilename)) {
-                            gltf.ToJSON(outt);
+                        using (var outm = new MemoryStream()) {
+                            using (StreamWriter outt = new StreamWriter(outm)) {
+                                gltf.ToJSON(outt);
+                            }
+                            pAssetManager.AssetStorage.Store(topLevelFilename, outm.ToArray());
                         }
-                        gltf.WriteBinaryFiles();
-                        gltf.WriteImages();
+                        gltf.WriteBinaryFiles(pAssetManager.AssetStorage);
+                        gltf.WriteImages(pAssetManager.AssetStorage);
                     }
                     catch (Exception e) {
                         string emsg = String.Format("{0} Exeception writing top level GLTF files: {1}", _logHeader, e);
@@ -165,12 +168,12 @@ namespace org.herbal3d.Loden {
                         throw new Exception(emsg);
                     }
                 }
-                return new LHandle(pLevelHash, absTopLevelFilename);
+                return new LHandle(pLevelHash, topLevelFilename);
             });
         }
 
         // Write the region spec file.
-        private async Task<LHandle> WriteRegionSpec(string absFilename, string pRegionSpecURI, LHandle pLevelHandle) {
+        private async Task<LHandle> WriteRegionSpec(AssetManager pAssetManager, string pFilename, string pRegionSpecURI, LHandle pLevelHandle) {
             Tiles.TileSet regSpec = new Tiles.TileSet {
                 root = new Tiles.Tile() {
                     content = new Tiles.TileContent(pRegionSpecURI),
@@ -180,18 +183,13 @@ namespace org.herbal3d.Loden {
                     geometricError = 0.5f
                 },
             };
-            using (var writer = File.CreateText(absFilename)) {
-                await regSpec.ToJSON(writer);
+            using (var outm = new MemoryStream()) {
+                using (var outt = new StreamWriter(outm)) {
+                    await regSpec.ToJSON(outt);
+                }
+                await pAssetManager.AssetStorage.Store(pFilename, outm.ToArray());
             }
-            return new LHandle(new BHashULong(), absFilename);
-        }
-
-        // Given a target filename, return the absolute path to a created storage filename.
-        private string CreateAbsFilePath(string pFilename, IParameters pParams) {
-            string strippedStorageName = Path.GetFileNameWithoutExtension(pFilename);
-            string storageDir = PersistRules.StorageDirectory(strippedStorageName, pParams);
-            string absCreatedDir = PersistRules.CreateDirectory(storageDir, pParams);
-            return Path.Combine(absCreatedDir, pFilename);
+            return new LHandle(new BHashULong(), pFilename);
         }
 
         private string CreateFileURI(string pFilename, IParameters pParams) {
