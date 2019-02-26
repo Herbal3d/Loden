@@ -30,7 +30,7 @@ using OMVS = OpenMetaverse.StructuredData;
 using OMVA = OpenMetaverse.Assets;
 using OMVR = OpenMetaverse.Rendering;
 
-using org.herbal3d.cs.os.CommonEntities;
+using org.herbal3d.cs.CommonEntities;
 using org.herbal3d.cs.CommonEntitiesUtil;
 
 using log4net;

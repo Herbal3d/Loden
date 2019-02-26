@@ -1,0 +1,32 @@
+    <Project frameworkVersion="v4_6" name="CommonEntitiesUtil" path="../HerbalCommonEntitiesCS/CommonEntitiesUtil/" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../opensim-ssh/bin/</OutputPath>
+          <AllowUnsafe>true</AllowUnsafe>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../opensim-ssh/bin/</OutputPath>
+          <AllowUnsafe>true</AllowUnsafe>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../opensim-ssh/bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Reflection"/>
+      <Reference name="Mono.Addins" />
+
+      <Reference name="OpenMetaverse" />
+      <Reference name="OpenMetaverseTypes" />
+
+      <Reference name="log4net" />
+
+      <Files>
+        <Match pattern="*.cs" recurse="true">
+          <Exclude name="Tests" pattern="Tests"/>
+          <Exclude name="Object" pattern="obj"/>
+        </Match>
+      </Files>
+    </Project>
