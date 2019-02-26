@@ -77,13 +77,13 @@ namespace org.herbal3d.Loden {
 
             // Subscribe to changes in the region so we know when to start rebuilding
 
-            _context.log.DebugFormat("{0} Enter", _logHeader);
-            // Create a region hash and build content tables
+            // Create a region hash made of the hashes of all the SOGs in the region
             Dictionary<OMV.UUID, BHash> sogHashes = new Dictionary<OMV.UUID, BHash>();
             BHasher regionHasher = new BHasherSHA256();
             regionHasher.Add(_scene.RegionInfo.RegionID.GetBytes(), 0, 16);
             foreach (SceneObjectGroup sog in _scene.GetSceneObjectGroups()) {
                 BHash sogHash = CreateSOGHash(sog);
+                // Remember the SOG hash so we won't need to recreate it later
                 sogHashes.Add(sog.UUID, sogHash);
                 regionHasher.Add(sogHash.ToBytes(), 0, sogHash.ToBytes().Length);
             }
@@ -95,18 +95,22 @@ namespace org.herbal3d.Loden {
             string regionIdentifier = _scene.RegionInfo.RegionID.ToString().Replace("-", "");
 
             using (AssetManager assetManager = new AssetManager(_scene.AssetService, _context.log, _context.parms)) {
-                // See if region specification file has been built
                 string specFilename = regionIdentifier + ".json";
                 string specURI = CreateFileURI(regionIdentifier + ".json", _context.parms);
+
+                // See if region specification file has been built
                 string regionSpec = await assetManager.AssetStorage.FetchText(specFilename);
                 if (String.IsNullOrEmpty(regionSpec)) {
                     // The region has not been built.
                     _context.log.DebugFormat("{0}: region spec file does not exist. Rebuilding", _logHeader);
+
+                    // Convert the OpenSimulator scene to BScene object for manipulation
                     BScene bScene = await ConvertSceneToBScene(assetManager);
 
+                    // Write out the 'top level' (highest quality) version of the region
                     LHandle topLevelHandle = await WriteOutLevel(regionHash, bScene, assetManager);
 
-                    _context.log.DebugFormat("{0} Writing region spec. URI={1}", _logHeader, specURI);
+                    // Create the region specification which defines the top of the region LOD tree
                     LHandle regionSpecFile = await WriteRegionSpec(assetManager, specFilename, specURI, topLevelHandle);
                 }
                 else {
@@ -136,44 +140,41 @@ namespace org.herbal3d.Loden {
         }
 
         // Given a BScene, write out a GLTF version and return a handle to the version.
-        private Task<LHandle> WriteOutLevel(BHash pLevelHash, BScene pBScene, AssetManager pAssetManager) {
-            return Task<LHandle>.Run(() => {
-                Gltf gltf = null;
-                string topLevelFilename = String.Empty;
-                try {
-                    gltf = new Gltf(_scene.Name, _context.log, _context.parms);
-                    gltf.LoadScene(pBScene, pAssetManager);
-                }
-                catch (Exception e) {
-                    string emsg = String.Format("{0} Exeception loading scene into Gltf: {1}", _logHeader, e);
-                    _context.log.ErrorFormat(emsg);
-                    throw new Exception(emsg);
-                }
-                if (gltf != null) {
-                    topLevelFilename = pLevelHash.ToString() + ".gltf";
-                    _context.log.DebugFormat("{0}: writing top level region GLTF to {1}", _logHeader, topLevelFilename);
-                    try {
-                        using (var outm = new MemoryStream()) {
-                            using (StreamWriter outt = new StreamWriter(outm)) {
-                                gltf.ToJSON(outt);
-                            }
-                            pAssetManager.AssetStorage.Store(topLevelFilename, outm.ToArray());
-                        }
-                        gltf.WriteBinaryFiles(pAssetManager.AssetStorage);
-                        gltf.WriteImages(pAssetManager.AssetStorage);
+        private async Task<LHandle> WriteOutLevel(BHash pLevelHash, BScene pBScene, AssetManager pAssetManager) {
+            Gltf gltf = null;
+            try {
+                gltf = new Gltf(_scene.Name, _context.log, _context.parms);
+                gltf.LoadScene(pBScene, pAssetManager);
+            }
+            catch (Exception e) {
+                string emsg = String.Format("{0} Exeception loading scene into Gltf: {1}", _logHeader, e);
+                _context.log.ErrorFormat(emsg);
+                throw new Exception(emsg);
+            }
+
+            string topLevelFilename = pLevelHash.ToString() + ".gltf";
+            _context.log.DebugFormat("{0}: writing top level region GLTF to {1}", _logHeader, topLevelFilename);
+            try {
+                using (var outm = new MemoryStream()) {
+                    using (StreamWriter outt = new StreamWriter(outm)) {
+                        gltf.ToJSON(outt);
                     }
-                    catch (Exception e) {
-                        string emsg = String.Format("{0} Exeception writing top level GLTF files: {1}", _logHeader, e);
-                        _context.log.ErrorFormat(emsg);
-                        throw new Exception(emsg);
-                    }
+                    await pAssetManager.AssetStorage.Store(topLevelFilename, outm.ToArray());
                 }
-                return new LHandle(pLevelHash, topLevelFilename);
-            });
+                gltf.WriteBinaryFiles(pAssetManager.AssetStorage);
+                gltf.WriteImages(pAssetManager.AssetStorage);
+            }
+            catch (Exception e) {
+                string emsg = String.Format("{0} Exeception writing top level GLTF files: {1}", _logHeader, e);
+                _context.log.ErrorFormat(emsg);
+                throw new Exception(emsg);
+            }
+            return new LHandle(pLevelHash, topLevelFilename);
         }
 
         // Write the region spec file.
         private async Task<LHandle> WriteRegionSpec(AssetManager pAssetManager, string pFilename, string pRegionSpecURI, LHandle pLevelHandle) {
+            // Create a simple tileset defining the region
             Tiles.TileSet regSpec = new Tiles.TileSet {
                 root = new Tiles.Tile() {
                     content = new Tiles.TileContent(pRegionSpecURI),
@@ -183,9 +184,10 @@ namespace org.herbal3d.Loden {
                     geometricError = 0.5f
                 },
             };
+
             using (var outm = new MemoryStream()) {
                 using (var outt = new StreamWriter(outm)) {
-                    await regSpec.ToJSON(outt);
+                    regSpec.ToJSON(outt);
                 }
                 await pAssetManager.AssetStorage.Store(pFilename, outm.ToArray());
             }
@@ -193,8 +195,7 @@ namespace org.herbal3d.Loden {
         }
 
         private string CreateFileURI(string pFilename, IParameters pParams) {
-            string referenceURI = PersistRules.ReferenceURL(pParams.P<string>("URIBase"), pFilename);
-            return referenceURI;
+            return PersistRules.ReferenceURL(pParams.P<string>("URIBase"), pFilename);
         }
 
         // Create a uniquifying hash for this SOG

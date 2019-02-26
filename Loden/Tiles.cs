@@ -46,12 +46,12 @@ namespace org.herbal3d.Tiles {
             root = new Tile();
         }
 
-        public async Task ToJSON(StreamWriter outt) {
+        public void ToJSON(StreamWriter outt) {
             JsonSerializer serializer = new JsonSerializer {
                 Formatting = Formatting.Indented
             };
             serializer.Serialize(outt, this);
-            await outt.FlushAsync();
+            outt.Flush();
         }
     }
 
