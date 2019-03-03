@@ -1,18 +1,18 @@
-    <Project frameworkVersion="v4_6" name="CommonEntities" path="../HerbalCommonEntitiesCS/CommonEntities" type="Library">
+    <Project frameworkVersion="v4_6" name="CommonEntities" path="addon-modules/HerbalCommonEntitiesCS/CommonEntities" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../../opensim-ssh/bin/</OutputPath>
+          <OutputPath>../../../bin/</OutputPath>
           <AllowUnsafe>true</AllowUnsafe>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../../opensim-ssh/bin/</OutputPath>
+          <OutputPath>../../../bin/</OutputPath>
           <AllowUnsafe>true</AllowUnsafe>
         </Options>
       </Configuration>
 
-      <ReferencePath>../../opensim-ssh/bin/</ReferencePath>
+      <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
       <Reference name="System.Data"/>
       <Reference name="System.Data.DataSetExtensions"/>
@@ -39,7 +39,7 @@
 
       <Reference name="CSJ2K" />
       <Reference name="Nini" />
-      <Reference name="log4net" /> />
+      <Reference name="log4net"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true">

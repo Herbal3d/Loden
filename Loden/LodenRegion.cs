@@ -51,7 +51,6 @@ namespace org.herbal3d.Loden {
             _running = false;
         }
 
-
         public void Start() {
             _running = true;
             // Wait for the region to have all its content before scanning

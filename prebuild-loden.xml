@@ -16,14 +16,14 @@
       <Reference name="System"/>
       <Reference name="System.Drawing"/>
       <Reference name="System.Reflection"/>
-      <Reference name="Mono.Addins" path="../../../bin/"/>
+      <Reference name="Mono.Addins"/>
 
-      <Reference name="OpenMetaverse" path="../../../bin/"/>
-      <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
-      <Reference name="OpenMetaverse.StructuredData" path="../../../bin/"/>
-      <Reference name="OpenMetaverse.Rendering.Meshmerizer" path="../../../bin/"/>
+      <Reference name="OpenMetaverse"/>
+      <Reference name="OpenMetaverseTypes"/>
+      <Reference name="OpenMetaverse.StructuredData"/>
+      <Reference name="OpenMetaverse.Rendering.Meshmerizer"/>
 
-      <Reference name="PrimMesher" path="../../../bin/"/>
+      <Reference name="PrimMesher" />
 
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Services.Interfaces"/>
@@ -31,15 +31,13 @@
       <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Region.PhysicsModules.SharedBase"/>
 
-      <Reference name="CommonEntitiesUtil" path="../../../bin/"/>
-      <Reference name="CommonEntities" path="../../../bin/"/>
+      <Reference name="CommonEntitiesUtil"/>
+      <Reference name="CommonEntities"/>
 
-      <Reference name="CSJ2K" path="../../../bin/"/>
-      <Reference name="Nini" path="../../../bin/"/>
-      <Reference name="log4net" path="../../../bin/"/>
+      <Reference name="Nini"/>
+      <Reference name="log4net"/>
 
-      <Reference name="Newtonsoft.Json" path="../../../bin/"/>
-
+      <Reference name="Newtonsoft.Json"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true">

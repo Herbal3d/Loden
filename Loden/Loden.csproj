@@ -65,54 +65,40 @@
 	  <Prefer32Bit>False</Prefer32Bit>
 	</PropertyGroup>
 	<ItemGroup>
-	  <Reference Include="CSJ2K" >
-		  <Name>CSJ2K</Name>
-		<HintPath>..\..\..\bin\CSJ2K.dll</HintPath>
-		<Private>False</Private>
-	  </Reference>
 	  <Reference Include="log4net" >
 		  <Name>log4net</Name>
-		<HintPath>..\..\..\bin\log4net.dll</HintPath>
 		<Private>False</Private>
 	  </Reference>
 	  <Reference Include="Mono.Addins" >
 		  <Name>Mono.Addins</Name>
-		<HintPath>..\..\..\bin\Mono.Addins.dll</HintPath>
 		<Private>False</Private>
 	  </Reference>
 	  <Reference Include="Newtonsoft.Json" >
 		  <Name>Newtonsoft.Json</Name>
-		<HintPath>..\..\..\bin\Newtonsoft.Json.dll</HintPath>
 		<Private>False</Private>
 	  </Reference>
 	  <Reference Include="Nini" >
 		  <Name>Nini</Name>
-		<HintPath>..\..\..\bin\Nini.dll</HintPath>
 		<Private>False</Private>
 	  </Reference>
 	  <Reference Include="OpenMetaverse" >
 		  <Name>OpenMetaverse</Name>
-		<HintPath>..\..\..\bin\OpenMetaverse.dll</HintPath>
 		<Private>False</Private>
 	  </Reference>
 	  <Reference Include="OpenMetaverse.Rendering.Meshmerizer" >
 		  <Name>OpenMetaverse.Rendering.Meshmerizer</Name>
-		<HintPath>..\..\..\bin\OpenMetaverse.Rendering.Meshmerizer.dll</HintPath>
 		<Private>False</Private>
 	  </Reference>
 	  <Reference Include="OpenMetaverse.StructuredData" >
 		  <Name>OpenMetaverse.StructuredData</Name>
-		<HintPath>..\..\..\bin\OpenMetaverse.StructuredData.dll</HintPath>
 		<Private>False</Private>
 	  </Reference>
 	  <Reference Include="OpenMetaverseTypes" >
 		  <Name>OpenMetaverseTypes</Name>
-		<HintPath>..\..\..\bin\OpenMetaverseTypes.dll</HintPath>
 		<Private>False</Private>
 	  </Reference>
 	  <Reference Include="PrimMesher" >
 		  <Name>PrimMesher</Name>
-		<HintPath>..\..\..\bin\PrimMesher.dll</HintPath>
 		<Private>False</Private>
 	  </Reference>
 	  <Reference Include="System" >
@@ -129,13 +115,13 @@
 	  </Reference>
 	</ItemGroup>
 	<ItemGroup>
-	  <ProjectReference Include="..\..\..\..\HerbalCommonEntitiesCS\CommonEntities\CommonEntities.csproj">
+	  <ProjectReference Include="..\..\HerbalCommonEntitiesCS\CommonEntities\CommonEntities.csproj">
 		<Name>CommonEntities</Name>
 		<Project>{E5FBCD68-0000-0000-0000-000000000000}</Project>
 		<Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
 		<Private>False</Private>
 	  </ProjectReference>
-	  <ProjectReference Include="..\..\..\..\HerbalCommonEntitiesCS\CommonEntitiesUtil\CommonEntitiesUtil.csproj">
+	  <ProjectReference Include="..\..\HerbalCommonEntitiesCS\CommonEntitiesUtil\CommonEntitiesUtil.csproj">
 		<Name>CommonEntitiesUtil</Name>
 		<Project>{A9D65554-0000-0000-0000-000000000000}</Project>
 		<Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
