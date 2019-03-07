@@ -108,9 +108,10 @@ namespace org.herbal3d.Loden {
 
                     // Write out the 'top level' (highest quality) version of the region
                     LHandle topLevelHandle = await WriteOutLevel(regionHash, bScene, assetManager);
+                    string topLevelURI = CreateFileURI(topLevelHandle.Filename, _context.parms);
 
                     // Create the region specification which defines the top of the region LOD tree
-                    LHandle regionSpecFile = await WriteRegionSpec(assetManager, specFilename, specURI, topLevelHandle);
+                    LHandle regionSpecFile = await WriteRegionSpec(assetManager, specFilename, topLevelURI);
                 }
                 else {
                     _context.log.DebugFormat("{0}: region spec file exists.", _logHeader);
@@ -172,7 +173,7 @@ namespace org.herbal3d.Loden {
         }
 
         // Write the region spec file.
-        private async Task<LHandle> WriteRegionSpec(AssetManager pAssetManager, string pFilename, string pRegionSpecURI, LHandle pLevelHandle) {
+        private async Task<LHandle> WriteRegionSpec(AssetManager pAssetManager, string pFilename, string pRegionSpecURI) {
             // Create a simple tileset defining the region
             Tiles.TileSet regSpec = new Tiles.TileSet {
                 root = new Tiles.Tile() {
@@ -193,6 +194,7 @@ namespace org.herbal3d.Loden {
             return new LHandle(new BHashULong(), pFilename);
         }
 
+        // Given a filename, return the URI that would reference that file in the asset system
         private string CreateFileURI(string pFilename, IParameters pParams) {
             return PersistRules.ReferenceURL(pParams.P<string>("URIBase"), pFilename);
         }

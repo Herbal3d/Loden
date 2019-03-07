@@ -56,7 +56,7 @@ namespace org.herbal3d.Tiles {
     }
 
     public class TileAsset {
-        public string version;
+        public string version = "1.0";
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string tilesetVersion;
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
@@ -65,15 +65,14 @@ namespace org.herbal3d.Tiles {
         public TileExtensions extras;
 
         public TileAsset() {
-            version = "1.0";
         }
     }
 
     public class Tile {
-        public TileBoundingVolume boundingVolume;
+        public TileBoundingVolume boundingVolume = new TileBoundingVolume();
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TileBoundingVolume viewerRequestVolume;
-        public float geometricError;
+        public float geometricError = 1.0f;
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string refine;
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
@@ -88,8 +87,6 @@ namespace org.herbal3d.Tiles {
         public TileExtensions extras;
 
         public Tile() {
-            boundingVolume = new TileBoundingVolume();
-            geometricError = 1.0f;
         }
     }
 

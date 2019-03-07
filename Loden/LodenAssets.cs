@@ -32,14 +32,21 @@ namespace org.herbal3d.Loden {
 
     public class LHandle {
         public BHash Hash;
-        public string Dir;
+        public string Filename;
 
-        public LHandle(BHash pHash, string pDir) {
+        public LHandle(BHash pHash, string pFilename) {
             Hash = pHash;
-            Dir = pDir;
+            Filename = pFilename;
         }
         public override string ToString() {
-            return Path.Combine(Dir, Hash.ToString());
+            string ret = String.Empty;
+            if (String.IsNullOrEmpty(Filename)) {
+                ret = Hash.ToString();
+            }
+            else {
+                ret = Filename;
+            }
+            return ret;
         }
     }
 
