@@ -1,4 +1,4 @@
-    <Project frameworkVersion="v4_6" name="Loden" path="addon-modules/Loden/Loden" type="Library">
+    <Project frameworkVersion="v4_6" name="Herbal3d.Loden" path="addon-modules/Loden/Loden" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
