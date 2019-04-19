@@ -31,8 +31,8 @@
       <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Region.PhysicsModules.SharedBase"/>
 
-      <Reference name="CommonEntitiesUtil"/>
-      <Reference name="CommonEntities"/>
+      <Reference name="Herbal3d.CommonEntitiesUtil"/>
+      <Reference name="Herbal3d.CommonEntities"/>
 
       <Reference name="Nini"/>
       <Reference name="log4net"/>
