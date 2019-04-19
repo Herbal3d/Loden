@@ -74,7 +74,7 @@ namespace org.herbal3d.Loden {
             // Heavy handed async stuff but the checks for existance could take a while
             //     if the storage system is remote.
             if (await Task.Run(() => {
-                return Directory.Exists(dir) &&
+                    return Directory.Exists(dir) &&
                              ( File.Exists(Path.Combine(dir, pHash + ".gltf"))
                              || File.Exists(Path.Combine(dir, pHash + ".glb")) );
                         }) ) {

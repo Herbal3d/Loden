@@ -75,18 +75,9 @@ namespace org.herbal3d.Loden {
             _assetTools = new LodenAssets(_scene, _context);
 
             // Subscribe to changes in the region so we know when to start rebuilding
+            // TODO:
 
-            // Create a region hash made of the hashes of all the SOGs in the region
-            Dictionary<OMV.UUID, BHash> sogHashes = new Dictionary<OMV.UUID, BHash>();
-            BHasher regionHasher = new BHasherSHA256();
-            regionHasher.Add(_scene.RegionInfo.RegionID.GetBytes(), 0, 16);
-            foreach (SceneObjectGroup sog in _scene.GetSceneObjectGroups()) {
-                BHash sogHash = CreateSOGHash(sog);
-                // Remember the SOG hash so we won't need to recreate it later
-                sogHashes.Add(sog.UUID, sogHash);
-                regionHasher.Add(sogHash.ToBytes(), 0, sogHash.ToBytes().Length);
-            }
-            BHash regionHash = regionHasher.Finish();
+            BHash regionHash = CreateRegionHash(_scene);
             _context.log.DebugFormat("{0} SOGs in region: {1}", _logHeader, _scene.GetSceneObjectGroups().Count);
             _context.log.DebugFormat("{0} Computed region hash: {1}", _logHeader, regionHash.ToString());
 
@@ -119,10 +110,13 @@ namespace org.herbal3d.Loden {
             }
 
             // Partition region and verify all partitions have been created and not different.
+            // TODO:
 
             // Walk up the LOD chain and verify existance or build each LOD level
+            // TODO:
 
             // Wait for changes and do rebuilds of necessary
+            // TODO:
             
         }
 
@@ -197,6 +191,19 @@ namespace org.herbal3d.Loden {
         // Given a filename, return the URI that would reference that file in the asset system
         private string CreateFileURI(string pFilename, IParameters pParams) {
             return PersistRules.ReferenceURL(pParams.P<string>("URIBase"), pFilename);
+        }
+
+        // Create a region hash made of the hashes of all the SOGs in the region
+        private BHash CreateRegionHash(Scene pScene) {
+            BHasher regionHasher = new BHasherSHA256();
+            regionHasher.Add(_scene.RegionInfo.RegionID.GetBytes(), 0, 16);
+            foreach (SceneObjectGroup sog in pScene.GetSceneObjectGroups()) {
+                BHash sogHash = CreateSOGHash(sog);
+                // Remember the SOG hash so we won't need to recreate it later
+                byte[] sogHashBytes = sogHash.ToBytes();
+                regionHasher.Add(sogHashBytes, 0, sogHashBytes.Length);
+            }
+            return regionHasher.Finish();
         }
 
         // Create a uniquifying hash for this SOG
