@@ -53,6 +53,21 @@ namespace org.herbal3d.Tiles {
             serializer.Serialize(outt, this);
             outt.Flush();
         }
+
+        public static TileSet FromStream(Stream pIn) {
+            TileSet ret;
+            using (StreamReader stream = new StreamReader(pIn, Encoding.UTF8)) {
+                string tileSetJSON = stream.ReadToEnd();
+                ret = FromString(tileSetJSON);
+            }
+            return ret;
+        }
+
+        public static TileSet FromString(string pIn) {
+            TileSet ret;
+            ret = JsonConvert.DeserializeObject<TileSet>(pIn, new JustAnArrayIO());
+            return ret;
+        }
     }
 
     public class TileAsset {
@@ -213,8 +228,7 @@ namespace org.herbal3d.Tiles {
     // JSON output and input routines for classes that are really just names
     //    and an array of values;
     class JustAnArrayIO : JsonConverter {
-        public override bool CanRead => false;
-
+        public override bool CanRead => true;
         public override bool CanWrite => true;
 
         public override bool CanConvert(Type objectType) {
@@ -222,7 +236,24 @@ namespace org.herbal3d.Tiles {
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) {
-            throw new NotImplementedException();
+            object ret = null;
+            JToken array = JToken.Load(reader);
+            if (array.Type == JTokenType.Array) {
+                double[] arrayValues = array.ToObject<List<double>>().ToArray();
+                if (objectType == typeof(TileBox)) {
+                    ret = new TileBox(arrayValues);
+                }
+                if (objectType == typeof(TileRegion)) {
+                    ret = new TileRegion(arrayValues);
+                }
+                if (objectType == typeof(TileTransform)) {
+                    ret = new TileTransform(arrayValues);
+                }
+                if (objectType == typeof(TileSphere)) {
+                    ret = new TileSphere(arrayValues);
+                }
+            }
+            return ret;
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) {

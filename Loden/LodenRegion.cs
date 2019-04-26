@@ -39,26 +39,27 @@ namespace org.herbal3d.Loden {
     public class LodenRegion {
         private static readonly String _logHeader = "[LodenRegion]";
 
+        public string RegionTopLevelSpecURL;
+
         private readonly Scene _scene;
         private readonly LodenContext _context;
         private LodenAssets _assetTools;
-        private bool _running;  // 'true' if should be doing stuff
 
         // Given a scene, do the LOD ("level of detail") conversion
         public LodenRegion(Scene pScene, LodenContext pContext) {
             _scene = pScene;
             _context = pContext;
-            _running = false;
+
+            // Register this lod controller for the region so other modules can access
+            _scene.RegisterModuleInterface<LodenRegion>(this);
         }
 
         public void Start() {
-            _running = true;
             // Wait for the region to have all its content before scanning
             _scene.EventManager.OnPrimsLoaded += Event_OnPrimsLoaded;
         }
 
         public void Shutdown() {
-            _running = false;
             _scene.EventManager.OnPrimsLoaded -= Event_OnPrimsLoaded;
         }
 
@@ -86,7 +87,7 @@ namespace org.herbal3d.Loden {
 
             using (AssetManager assetManager = new AssetManager(_scene.AssetService, _context.log, _context.parms)) {
                 string specFilename = regionIdentifier + ".json";
-                string specURI = CreateFileURI(regionIdentifier + ".json", _context.parms);
+                RegionTopLevelSpecURL = CreateFileURI(regionIdentifier + ".json", _context.parms);
 
                 // See if region specification file has been built
                 string regionSpec = await assetManager.AssetStorage.FetchText(specFilename);
@@ -99,10 +100,9 @@ namespace org.herbal3d.Loden {
 
                     // Write out the 'top level' (highest quality) version of the region
                     LHandle topLevelHandle = await WriteOutLevel(regionHash, bScene, assetManager);
-                    string topLevelURI = CreateFileURI(topLevelHandle.Filename, _context.parms);
 
                     // Create the region specification which defines the top of the region LOD tree
-                    LHandle regionSpecFile = await WriteRegionSpec(assetManager, specFilename, topLevelURI);
+                    LHandle regionSpecFile = await WriteRegionSpec(assetManager, specFilename, topLevelHandle.Filename);
                 }
                 else {
                     _context.log.DebugFormat("{0}: region spec file exists.", _logHeader);
