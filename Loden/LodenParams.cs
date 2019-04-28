@@ -173,7 +173,7 @@ namespace org.herbal3d.Loden {
                         // System.Console.WriteLine("SetValue: setting value on {0} to {1}", this.name, setValue);
                         // Store the parsed value
                         value = setValue;
-                        context.log.DebugFormat("{0} SetValue. {1} = {2}", _logHeader, name, setValue);
+                        // context.log.DebugFormat("{0} SetValue. {1} = {2}", _logHeader, name, setValue);
                     }
                     catch (Exception e) {
                         context.log.ErrorFormat("{0} Failed parsing parameter value '{1}': '{2}'", _logHeader, valAsString, e);
