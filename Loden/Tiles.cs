@@ -114,6 +114,8 @@ namespace org.herbal3d.Tiles {
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TileExtensions extras;
 
+        public TileContent() {
+        }
         public TileContent(string pURI) {
             uri = pURI;
         }
