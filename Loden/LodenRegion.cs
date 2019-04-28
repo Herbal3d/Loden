@@ -34,6 +34,7 @@ using org.herbal3d.cs.CommonEntities;
 using org.herbal3d.cs.CommonEntitiesUtil;
 
 using log4net;
+using org.herbal3d.Tiles;
 
 namespace org.herbal3d.Loden {
     public class LodenRegion {
@@ -90,10 +91,31 @@ namespace org.herbal3d.Loden {
                 RegionTopLevelSpecURL = CreateFileURI(regionIdentifier + ".json", _context.parms);
 
                 // See if region specification file has been built
-                string regionSpec = await assetManager.AssetStorage.FetchText(specFilename);
-                if (String.IsNullOrEmpty(regionSpec)) {
+                bool buildRegion = true;
+                try {
+                    string regionSpec = await assetManager.AssetStorage.FetchText(specFilename);
+                    if (!String.IsNullOrEmpty(regionSpec)) {
+                        // Read in the spec file
+                        TileSet regionTiles = TileSet.FromString(regionSpec);
+                        if (regionTiles.root.content.extras.ContainsKey("contentHash")) {
+                            // If the content hash matches, the region doesn't need rebuilding
+                            if ((string)regionTiles.root.content.extras["contentHash"] == regionHash.ToString()) {
+                                _context.log.DebugFormat("{0} Content hash matches. Note rebuilding", _logHeader);
+                                buildRegion = false;
+                            }
+                            else {
+                                _context.log.DebugFormat("{0} Content hash does not match. Rebuilding", _logHeader);
+                            }
+                        }
+                    }
+                }
+                catch (Exception e) {
+                    _context.log.ErrorFormat("{0} Exception reading region spec file: {1}", _logHeader, e);
+                    buildRegion = true;
+                }
+                if (buildRegion) {
                     // The region has not been built.
-                    _context.log.DebugFormat("{0}: region spec file does not exist. Rebuilding", _logHeader);
+                    _context.log.DebugFormat("{0}: region does not match. Rebuilding", _logHeader);
 
                     // Convert the OpenSimulator scene to BScene object for manipulation
                     BScene bScene = await ConvertSceneToBScene(assetManager);
@@ -102,7 +124,7 @@ namespace org.herbal3d.Loden {
                     LHandle topLevelHandle = await WriteOutLevel(regionHash, bScene, assetManager);
 
                     // Create the region specification which defines the top of the region LOD tree
-                    LHandle regionSpecFile = await WriteRegionSpec(assetManager, specFilename, topLevelHandle.Filename);
+                    LHandle regionSpecFile = await WriteRegionSpec(assetManager, regionHash, specFilename, topLevelHandle.Filename);
                 }
                 else {
                     _context.log.DebugFormat("{0}: region spec file exists.", _logHeader);
@@ -167,11 +189,17 @@ namespace org.herbal3d.Loden {
         }
 
         // Write the region spec file.
-        private async Task<LHandle> WriteRegionSpec(AssetManager pAssetManager, string pFilename, string pRegionSpecURI) {
+        private async Task<LHandle> WriteRegionSpec(AssetManager pAssetManager, BHash pRegionHash,
+                                    string pFilename, string pRegionSpecURI) {
             // Create a simple tileset defining the region
             Tiles.TileSet regSpec = new Tiles.TileSet {
                 root = new Tiles.Tile() {
-                    content = new Tiles.TileContent(pRegionSpecURI),
+                    content = new Tiles.TileContent() {
+                        uri = pRegionSpecURI,
+                        extras = new Tiles.TileExtensions() {
+                            { "contentHash", pRegionHash.ToString() }
+                        }
+                    },
                     boundingVolume = new Tiles.TileBoundingVolume() {
                         box = new Tiles.TileBox()
                     },
