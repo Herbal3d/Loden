@@ -160,7 +160,7 @@ namespace org.herbal3d.Loden {
             Gltf gltf = null;
             try {
                 gltf = new Gltf(_scene.Name, _context.log, _context.parms);
-                gltf.LoadScene(pBScene, pAssetManager);
+                gltf.LoadScene(pBScene);
             }
             catch (Exception e) {
                 string emsg = String.Format("{0} Exeception loading scene into Gltf: {1}", _logHeader, e);

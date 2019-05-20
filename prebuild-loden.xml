@@ -32,6 +32,7 @@
       <Reference name="OpenSim.Region.PhysicsModules.SharedBase"/>
 
       <Reference name="Herbal3d.CommonEntitiesUtil"/>
+      <Reference name="Herbal3d.CommonEntitiesConv"/>
       <Reference name="Herbal3d.CommonEntities"/>
 
       <Reference name="Nini"/>
