@@ -108,7 +108,11 @@ namespace org.herbal3d.Tiles {
     public class TileContent {
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TileBoundingVolume boundingVolume;
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string uri;
+        // Basil extension so a tile's content can be multiple GLTF files.
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string[] uris;
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TileExtensions extensions;
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
