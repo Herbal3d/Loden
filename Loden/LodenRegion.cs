@@ -79,7 +79,7 @@ namespace org.herbal3d.Loden {
             // Subscribe to changes in the region so we know when to start rebuilding
             // TODO:
 
-            BHash regionHash = CreateRegionHash(_scene);
+            BHash regionHash = LodenRegion.CreateRegionHash(_scene);
             _context.log.DebugFormat("{0} SOGs in region: {1}", _logHeader, _scene.GetSceneObjectGroups().Count);
             _context.log.DebugFormat("{0} Computed region hash: {1}", _logHeader, regionHash.ToString());
 
@@ -100,7 +100,7 @@ namespace org.herbal3d.Loden {
                         if (regionTiles.root.content.extras.ContainsKey("contentHash")) {
                             // If the content hash matches, the region doesn't need rebuilding
                             if ((string)regionTiles.root.content.extras["contentHash"] == regionHash.ToString()) {
-                                _context.log.DebugFormat("{0} Content hash matches. Note rebuilding", _logHeader);
+                                _context.log.DebugFormat("{0} Content hash matches. Not rebuilding", _logHeader);
                                 buildRegion = false;
                             }
                             else {
@@ -222,30 +222,31 @@ namespace org.herbal3d.Loden {
         }
 
         // Create a region hash made of the hashes of all the SOGs in the region
-        private BHash CreateRegionHash(Scene pScene) {
+        public static BHash CreateRegionHash(Scene pScene) {
             BHasher regionHasher = new BHasherSHA256();
-            regionHasher.Add(_scene.RegionInfo.RegionID.GetBytes(), 0, 16);
-            foreach (SceneObjectGroup sog in pScene.GetSceneObjectGroups()) {
-                BHash sogHash = CreateSOGHash(sog);
-                // Remember the SOG hash so we won't need to recreate it later
-                byte[] sogHashBytes = sogHash.ToBytes();
-                regionHasher.Add(sogHashBytes, 0, sogHashBytes.Length);
+            regionHasher.Add(pScene.RegionInfo.RegionID.GetBytes(), 0, 16);
+
+            foreach (SceneObjectGroup sog in pScene.GetSceneObjectGroups().OrderBy(x => x.UUID)) {
+                regionHasher.Add(LodenRegion.CreateSOGHash(sog));
             }
+            
             return regionHasher.Finish();
         }
 
-        // Create a uniquifying hash for this SOG
-        private BHash CreateSOGHash(SceneObjectGroup pSog) {
+        // Create a uniquifying hash for this SOG instance.
+        // The hash includes the UUID, a hash of the prim paramters, and the position in the scene.
+        public static BHash CreateSOGHash(SceneObjectGroup pSog) {
             BHasher sogHasher = new BHasherSHA256();
             sogHasher.Add(pSog.UUID.GetBytes(), 0, 16);
-            foreach (SceneObjectPart sop in pSog.Parts) {
+            foreach (SceneObjectPart sop in pSog.Parts.OrderBy(x => x.UUID)) {
                 sogHasher.Add(sop.UUID.GetBytes(), 0, 16);
-                AddPositionToHash(sogHasher, sop.AbsolutePosition, sop.RotationOffset);
+                sogHasher.Add(sop.Shape.GetMeshKey(sop.Scale, (float)OMVR.DetailLevel.Highest));
+                LodenRegion.AddPositionToHash(sogHasher, sop.AbsolutePosition, sop.RotationOffset);
             };
             return sogHasher.Finish();
         }
 
-        private void AddPositionToHash(BHasher hasher, OMV.Vector3 pos, OMV.Quaternion rot) {
+        public static void AddPositionToHash(BHasher hasher, OMV.Vector3 pos, OMV.Quaternion rot) {
             hasher.Add(pos.X);
             hasher.Add(pos.Y);
             hasher.Add(pos.Z);
