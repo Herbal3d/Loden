@@ -69,11 +69,11 @@ namespace org.herbal3d.Loden {
         private void Event_OnPrimsLoaded(Scene pScene) {
             // Loading is going to take a while. Start up a Task.
             Task.Run(async () => {
-                await ConvertRegionAssets(pScene);
+                await ConvertRegionAssets();
             });
         }
 
-        private async Task ConvertRegionAssets(Scene pScene) {
+        private async Task ConvertRegionAssets() {
             _assetTools = new LodenAssets(_scene, _context);
 
             // Subscribe to changes in the region so we know when to start rebuilding
@@ -157,7 +157,7 @@ namespace org.herbal3d.Loden {
 
         // Given a BScene, write out a GLTF version and return a handle to the version.
         private async Task<LHandle> WriteOutLevel(BHash pLevelHash, BScene pBScene, AssetManager pAssetManager) {
-            Gltf gltf = null;
+            Gltf gltf;
             try {
                 gltf = new Gltf(_scene.Name, _context.log, _context.parms);
                 gltf.LoadScene(pBScene);

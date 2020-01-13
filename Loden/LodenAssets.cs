@@ -39,7 +39,7 @@ namespace org.herbal3d.Loden {
             Filename = pFilename;
         }
         public override string ToString() {
-            string ret = String.Empty;
+            string ret;
             if (String.IsNullOrEmpty(Filename)) {
                 ret = Hash.ToString();
             }
