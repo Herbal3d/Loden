@@ -41,7 +41,7 @@ namespace org.herbal3d.Loden {
         public LodenParams parms;
         public LodenStats stats;
         public BLogger log;
-        public string contextName;  // a unique identifier for this context -- used in filenames, ...
+        public string contextName;          // a unique identifier for this context -- used in filenames, ...
 
         public LodenContext(IConfig pSysConfig, LodenParams pParms, ILog pLog) {
             sysConfig = pSysConfig;
@@ -57,9 +57,9 @@ namespace org.herbal3d.Loden {
         private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly String _logHeader = "[LodenModule]";
 
-        private LodenContext _context;
+        private LodenContext _lcontext;
         private Scene _scene;
-        private LodenRegion _regionProcessor = null;
+        private LodenRegion _regionProcessor;
 
         // IRegionModuleBase.Name
         public string Name { get { return "OSAuthModule"; } }
@@ -71,12 +71,12 @@ namespace org.herbal3d.Loden {
         // IRegionModuleBase.Initialize
         public void Initialise(IConfigSource pConfig) {
             var sysConfig = pConfig.Configs["Loden"];
-            _context = new LodenContext(sysConfig, null, _log);
-            _context.parms  = new LodenParams(_context);
+            _lcontext = new LodenContext(sysConfig, null, _log);
+            _lcontext.parms  = new LodenParams(_lcontext);
             if (sysConfig != null) {
-                _context.parms.SetParameterConfigurationValues(sysConfig, _context);
+                _lcontext.parms.SetParameterConfigurationValues(sysConfig, _lcontext);
             }
-            if (_context.parms.P<bool>("Enabled")) {
+            if (_lcontext.parms.P<bool>("Enabled")) {
                 _log.InfoFormat("{0} Enabled", _logHeader);
             }
         }
@@ -108,9 +108,9 @@ namespace org.herbal3d.Loden {
         // IRegionModuleBase.RegionLoaded
         // Called once for each region loaded after all other regions have been loaded.
         public void RegionLoaded(Scene scene) {
-            if (_context.parms.P<bool>("Enabled")) {
+            if (_lcontext.parms.P<bool>("Enabled")) {
                 // Start a processing  thread for the region we're managing
-                _regionProcessor = new LodenRegion(_scene, _context);
+                _regionProcessor = new LodenRegion(_scene, _lcontext);
                 _regionProcessor.Start();
             }
             // That's nice.

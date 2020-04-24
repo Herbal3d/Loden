@@ -43,13 +43,13 @@ namespace org.herbal3d.Loden {
         public string RegionTopLevelSpecURL;
 
         private readonly Scene _scene;
-        private readonly LodenContext _context;
+        public readonly LodenContext LContext;
         private LodenAssets _assetTools;
 
         // Given a scene, do the LOD ("level of detail") conversion
-        public LodenRegion(Scene pScene, LodenContext pContext) {
+        public LodenRegion(Scene pScene, LodenContext pLContext) {
             _scene = pScene;
-            _context = pContext;
+            LContext = pLContext;
 
             // Register this lod controller for the region so other modules can access
             _scene.RegisterModuleInterface<LodenRegion>(this);
@@ -74,21 +74,21 @@ namespace org.herbal3d.Loden {
         }
 
         private async Task ConvertRegionAssets() {
-            _assetTools = new LodenAssets(_scene, _context);
+            _assetTools = new LodenAssets(_scene, LContext);
 
             // Subscribe to changes in the region so we know when to start rebuilding
             // TODO:
 
             BHash regionHash = LodenRegion.CreateRegionHash(_scene);
-            _context.log.DebugFormat("{0} SOGs in region: {1}", _logHeader, _scene.GetSceneObjectGroups().Count);
-            _context.log.DebugFormat("{0} Computed region hash: {1}", _logHeader, regionHash.ToString());
+            LContext.log.DebugFormat("{0} SOGs in region: {1}", _logHeader, _scene.GetSceneObjectGroups().Count);
+            LContext.log.DebugFormat("{0} Computed region hash: {1}", _logHeader, regionHash.ToString());
 
             // Cleaned up region identifier
             string regionIdentifier = _scene.RegionInfo.RegionID.ToString().Replace("-", "");
 
-            using (AssetManager assetManager = new AssetManager(_scene.AssetService, _context.log, _context.parms)) {
+            using (AssetManager assetManager = new AssetManager(_scene.AssetService, LContext.log, LContext.parms)) {
                 string specFilename = regionIdentifier + ".json";
-                RegionTopLevelSpecURL = CreateFileURI(regionIdentifier + ".json", _context.parms);
+                RegionTopLevelSpecURL = CreateFileURI(regionIdentifier + ".json", LContext.parms);
 
                 // See if region specification file has been built
                 bool buildRegion = true;
@@ -100,22 +100,22 @@ namespace org.herbal3d.Loden {
                         if (regionTiles.root.content.extras.ContainsKey("contentHash")) {
                             // If the content hash matches, the region doesn't need rebuilding
                             if ((string)regionTiles.root.content.extras["contentHash"] == regionHash.ToString()) {
-                                _context.log.DebugFormat("{0} Content hash matches. Not rebuilding", _logHeader);
+                                LContext.log.DebugFormat("{0} Content hash matches. Not rebuilding", _logHeader);
                                 buildRegion = false;
                             }
                             else {
-                                _context.log.DebugFormat("{0} Content hash does not match. Rebuilding", _logHeader);
+                                LContext.log.DebugFormat("{0} Content hash does not match. Rebuilding", _logHeader);
                             }
                         }
                     }
                 }
                 catch (Exception e) {
-                    _context.log.ErrorFormat("{0} Exception reading region spec file: {1}", _logHeader, e);
+                    LContext.log.ErrorFormat("{0} Exception reading region spec file: {1}", _logHeader, e);
                     buildRegion = true;
                 }
                 if (buildRegion) {
                     // The region has not been built.
-                    _context.log.DebugFormat("{0}: region does not match. Rebuilding", _logHeader);
+                    LContext.log.DebugFormat("{0}: region does not match. Rebuilding", _logHeader);
 
                     // Convert the OpenSimulator scene to BScene object for manipulation
                     BScene bScene = await ConvertSceneToBScene(assetManager);
@@ -127,7 +127,7 @@ namespace org.herbal3d.Loden {
                     LHandle regionSpecFile = await WriteRegionSpec(assetManager, regionHash, specFilename, topLevelHandle.Filename);
                 }
                 else {
-                    _context.log.DebugFormat("{0}: region spec file exists.", _logHeader);
+                    LContext.log.DebugFormat("{0}: region spec file exists.", _logHeader);
                 }
             }
 
@@ -146,11 +146,11 @@ namespace org.herbal3d.Loden {
         private async Task<BScene> ConvertSceneToBScene(AssetManager pAssetManager) {
             BScene bScene = null;
             try {
-                BConverterOS converter = new BConverterOS(_context.log, _context.parms);
+                BConverterOS converter = new BConverterOS(LContext.log, LContext.parms);
                 bScene = await converter.ConvertRegionToBScene(_scene, pAssetManager);
             }
             catch (Exception e) {
-                _context.log.ErrorFormat("{0} Exeception converting region to BScene: {1}", _logHeader, e);
+                LContext.log.ErrorFormat("{0} Exeception converting region to BScene: {1}", _logHeader, e);
             }
             return bScene;
         }
@@ -159,17 +159,17 @@ namespace org.herbal3d.Loden {
         private async Task<LHandle> WriteOutLevel(BHash pLevelHash, BScene pBScene, AssetManager pAssetManager) {
             Gltf gltf;
             try {
-                gltf = new Gltf(_scene.Name, _context.log, _context.parms);
+                gltf = new Gltf(_scene.Name, LContext.log, LContext.parms);
                 gltf.LoadScene(pBScene);
             }
             catch (Exception e) {
                 string emsg = String.Format("{0} Exeception loading scene into Gltf: {1}", _logHeader, e);
-                _context.log.ErrorFormat(emsg);
+                LContext.log.ErrorFormat(emsg);
                 throw new Exception(emsg);
             }
 
             string topLevelFilename = pLevelHash.ToString() + ".gltf";
-            _context.log.DebugFormat("{0}: writing top level region GLTF to {1}", _logHeader, topLevelFilename);
+            LContext.log.DebugFormat("{0}: writing top level region GLTF to {1}", _logHeader, topLevelFilename);
             try {
                 using (var outm = new MemoryStream()) {
                     using (StreamWriter outt = new StreamWriter(outm)) {
@@ -182,7 +182,7 @@ namespace org.herbal3d.Loden {
             }
             catch (Exception e) {
                 string emsg = String.Format("{0} Exeception writing top level GLTF files: {1}", _logHeader, e);
-                _context.log.ErrorFormat(emsg);
+                LContext.log.ErrorFormat(emsg);
                 throw new Exception(emsg);
             }
             return new LHandle(pLevelHash, topLevelFilename);
