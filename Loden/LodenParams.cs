@@ -275,5 +275,9 @@ namespace org.herbal3d.Loden {
                 }
             }
         }
+
+        public void Remove(string pParamName) {
+            throw new NotImplementedException();
+        }
     }
 }
