@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 
-using org.herbal3d.cs.CommonEntitiesUtil;
+using org.herbal3d.cs.CommonUtil;
 
 using Nini.Config;
 
@@ -177,10 +177,10 @@ namespace org.herbal3d.Loden {
                         // System.Console.WriteLine("SetValue: setting value on {0} to {1}", this.name, setValue);
                         // Store the parsed value
                         value = setValue;
-                        // context.log.DebugFormat("{0} SetValue. {1} = {2}", _logHeader, name, setValue);
+                        // context.log.Debug("{0} SetValue. {1} = {2}", _logHeader, name, setValue);
                     }
                     catch (Exception e) {
-                        context.log.ErrorFormat("{0} Failed parsing parameter value '{1}': '{2}'", _logHeader, valAsString, e);
+                        context.log.Error("{0} Failed parsing parameter value '{1}': '{2}'", _logHeader, valAsString, e);
                     }
                 }
                 else {
@@ -188,10 +188,10 @@ namespace org.herbal3d.Loden {
                     try {
                         T setValue = (T)Convert.ChangeType(valAsString, GetValueType());
                         value = setValue;
-                        context.log.DebugFormat("{0} SetValue. Converter. {1} = {2}", _logHeader, name, setValue);
+                        context.log.Debug("{0} SetValue. Converter. {1} = {2}", _logHeader, name, setValue);
                     }
                     catch (Exception e) {
-                        context.log.ErrorFormat("{0} Conversion failed for {1}: {2}", _logHeader, this.name, e);
+                        context.log.Error("{0} Conversion failed for {1}: {2}", _logHeader, this.name, e);
                     }
                 }
             }
@@ -208,11 +208,11 @@ namespace org.herbal3d.Loden {
                     ret = pdef.Value();
                 }
                 else {
-                    _context.log.ErrorFormat("{0} Fetched parameter of wrong type. Param={1}", _logHeader, paramName);
+                    _context.log.Error("{0} Fetched parameter of wrong type. Param={1}", _logHeader, paramName);
                 }
             }
             else {
-                _context.log.ErrorFormat("{0} Fetched unknown parameter. Param={1}", _logHeader, paramName);
+                _context.log.Error("{0} Fetched unknown parameter. Param={1}", _logHeader, paramName);
             }
             return ret;
         }
@@ -267,7 +267,7 @@ namespace org.herbal3d.Loden {
         {
             foreach (ParameterDefnBase parm in ParameterDefinitions)
             {
-                // _context.log.DebugFormat("{0}: parm={1}, desc='{2}'", _logHeader, parm.name, parm.desc);
+                // _context.log.Debug("{0}: parm={1}, desc='{2}'", _logHeader, parm.name, parm.desc);
                 parm.context = pContext;
                 string configValue = cfg.GetString(parm.name, parm.GetValue());
                 if (!String.IsNullOrEmpty(configValue)) {

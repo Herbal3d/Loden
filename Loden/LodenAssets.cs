@@ -19,14 +19,9 @@ using System.IO;
 
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.Framework.Interfaces;
 
 using org.herbal3d.cs.CommonEntities;
-using org.herbal3d.cs.CommonEntitiesUtil;
-
-using OMV = OpenMetaverse;
-using OMVA = OpenMetaverse.Assets;
-using OpenMetaverse.Imaging;
+using org.herbal3d.cs.CommonUtil;
 
 namespace org.herbal3d.Loden {
 

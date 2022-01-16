@@ -1,4 +1,4 @@
-    <Project frameworkVersion="v4_6" name="Herbal3d.Loden" path="addon-modules/Loden/Loden" type="Library">
+    <Project frameworkVersion="v4_8" name="Herbal3d.Loden" path="addon-modules/Loden/Loden" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -31,14 +31,12 @@
       <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Region.PhysicsModules.SharedBase"/>
 
-      <Reference name="Herbal3d.CommonEntitiesUtil"/>
       <Reference name="Herbal3d.CommonEntitiesConv"/>
       <Reference name="Herbal3d.CommonEntities"/>
+      <Reference name="Herbal3d.CommonUtil"/>
 
       <Reference name="Nini"/>
       <Reference name="log4net"/>
-
-      <Reference name="Newtonsoft.Json"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true">

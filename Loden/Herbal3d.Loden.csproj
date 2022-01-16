@@ -1,4 +1,4 @@
-﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="14.0">
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="16.0">
   <PropertyGroup>
     <ProjectType>Local</ProjectType>
     <ProductVersion>16.7.3</ProductVersion>
@@ -25,7 +25,6 @@
     </StartArguments>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
@@ -136,12 +135,6 @@
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\HerbalCommonEntitiesCS\CommonEntitiesUtil\Herbal3d.CommonEntitiesUtil.csproj">
-      <Name>Herbal3d.CommonEntitiesUtil</Name>
-      <Project>{59F9BD1D-0000-0000-0000-000000000000}</Project>
-      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-      <Private>False</Private>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\OpenSim\Framework\OpenSim.Framework.csproj">
       <Name>OpenSim.Framework</Name>
       <Project>{BCCDBB55-0000-0000-0000-000000000000}</Project>
@@ -172,6 +165,10 @@
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\HerbalCommonUtilCS\Herbal3d.CommonUtil.csproj">
+      <Project>{a0ec2ce8-61ff-46dd-aec1-0154c1041d78}</Project>
+      <Name>Herbal3d.CommonUtil</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="LodenAssets.cs">
@@ -192,6 +189,7 @@
     <Compile Include="LodenStats.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="LoggerLog4Net.cs" />
     <Compile Include="Tiles.cs">
       <SubType>Code</SubType>
     </Compile>

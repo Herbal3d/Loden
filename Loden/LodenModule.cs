@@ -28,7 +28,7 @@ using OMVS = OpenMetaverse.StructuredData;
 using OMVA = OpenMetaverse.Assets;
 using OMVR = OpenMetaverse.Rendering;
 
-using org.herbal3d.cs.CommonEntitiesUtil;
+using org.herbal3d.cs.CommonUtil;
 
 using log4net;
 using Nini.Config;
@@ -40,13 +40,13 @@ namespace org.herbal3d.Loden {
         public IConfig sysConfig;
         public LodenParams parms;
         public LodenStats stats;
-        public BLogger log;
+        public IBLogger log;
         public string contextName;          // a unique identifier for this context -- used in filenames, ...
 
-        public LodenContext(IConfig pSysConfig, LodenParams pParms, ILog pLog) {
+        public LodenContext(IConfig pSysConfig, LodenParams pParms, IBLogger pLog) {
             sysConfig = pSysConfig;
             parms = pParms;
-            log = new LoggerLog4Net(pLog);
+            log = pLog;
             stats = new LodenStats(this);
             contextName = String.Empty;
         }
@@ -57,7 +57,7 @@ namespace org.herbal3d.Loden {
         private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly String _logHeader = "[LodenModule]";
 
-        private LodenContext _lcontext;
+        private LodenContext _lContext;
         private Scene _scene;
         private LodenRegion _regionProcessor;
 
@@ -71,13 +71,14 @@ namespace org.herbal3d.Loden {
         // IRegionModuleBase.Initialize
         public void Initialise(IConfigSource pConfig) {
             var sysConfig = pConfig.Configs["Loden"];
-            _lcontext = new LodenContext(sysConfig, null, _log);
-            _lcontext.parms  = new LodenParams(_lcontext);
+
+            _lContext = new LodenContext(sysConfig, null, new LoggerLog4Net(_log));
+            _lContext.parms  = new LodenParams(_lContext);
             if (sysConfig != null) {
-                _lcontext.parms.SetParameterConfigurationValues(sysConfig, _lcontext);
+                _lContext.parms.SetParameterConfigurationValues(sysConfig, _lContext);
             }
-            if (_lcontext.parms.P<bool>("Enabled")) {
-                _log.InfoFormat("{0} Enabled", _logHeader);
+            if (_lContext.parms.P<bool>("Enabled")) {
+                _lContext.log.Info("{0} Enabled", _logHeader);
             }
         }
         //
@@ -108,12 +109,13 @@ namespace org.herbal3d.Loden {
         // IRegionModuleBase.RegionLoaded
         // Called once for each region loaded after all other regions have been loaded.
         public void RegionLoaded(Scene scene) {
-            if (_lcontext.parms.P<bool>("Enabled")) {
+            if (_lContext.parms.P<bool>("Enabled")) {
                 // Start a processing  thread for the region we're managing
-                _regionProcessor = new LodenRegion(_scene, _lcontext);
+                _regionProcessor = new LodenRegion(_scene, _lContext);
                 _regionProcessor.Start();
             }
             // That's nice.
         }
     }
+
 }
