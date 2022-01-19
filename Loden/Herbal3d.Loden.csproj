@@ -81,9 +81,8 @@
       <Name>Mono.Addins</Name>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <Name>Newtonsoft.Json</Name>
-      <Private>False</Private>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Nini">
       <Name>Nini</Name>
@@ -166,7 +165,7 @@
       <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\HerbalCommonUtilCS\Herbal3d.CommonUtil.csproj">
-      <Project>{a0ec2ce8-61ff-46dd-aec1-0154c1041d78}</Project>
+      <Project>{562475fc-fc18-4e46-b5af-461754271efc}</Project>
       <Name>Herbal3d.CommonUtil</Name>
     </ProjectReference>
   </ItemGroup>
@@ -189,13 +188,18 @@
     <Compile Include="LodenStats.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="LoggerLog4Net.cs" />
+    <Compile Include="LoggerLog4Net.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Tiles.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

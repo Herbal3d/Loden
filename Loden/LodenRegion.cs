@@ -86,9 +86,12 @@ namespace org.herbal3d.Loden {
             // Cleaned up region identifier
             string regionIdentifier = _scene.RegionInfo.RegionID.ToString().Replace("-", "");
 
-            using (AssetManager assetManager = new AssetManager(_scene.AssetService, LContext.log, LContext.parms)) {
+            using (AssetManager assetManager = new AssetManager(_scene.AssetService,
+                                logger: LContext.log,
+                                outputDir: LContext.parms.OutputDir,
+                                useDeepFilenames: LContext.parms.UseDeepFilenames)) {
                 string specFilename = regionIdentifier + ".json";
-                RegionTopLevelSpecURL = CreateFileURI(regionIdentifier + ".json", LContext.parms);
+                RegionTopLevelSpecURL = CreateFileURI(regionIdentifier + ".json", LContext.parms.URIBase);
 
                 // See if region specification file has been built
                 bool buildRegion = true;
@@ -146,7 +149,12 @@ namespace org.herbal3d.Loden {
         private async Task<BScene> ConvertSceneToBScene(AssetManager pAssetManager) {
             BScene bScene = null;
             try {
-                BConverterOS converter = new BConverterOS(LContext.log, LContext.parms);
+                BConverterOS converter = new BConverterOS(LContext.log, new BConverterOSParams() {
+                    addTerrainMesh      = LContext.parms.AddTerrainMesh,
+                    displayTimeScaling  = LContext.parms.DisplayTimeScaling,
+                    doubleSided         = LContext.parms.DoubleSided,
+                    logBuilding         = LContext.parms.LogBuilding
+                });
                 bScene = await converter.ConvertRegionToBScene(_scene, pAssetManager);
             }
             catch (Exception e) {
@@ -159,7 +167,24 @@ namespace org.herbal3d.Loden {
         private async Task<LHandle> WriteOutLevel(BHash pLevelHash, BScene pBScene, AssetManager pAssetManager) {
             Gltf gltf;
             try {
-                gltf = new Gltf(_scene.Name, LContext.log, LContext.parms);
+                gltf = new Gltf(_scene.Name, LContext.log,
+                    new gltfParams() {
+                        uriBase                 = LContext.parms.URIBase,
+                        outputDir               = LContext.parms.OutputDir,
+                        verticesMaxForBuffer    = LContext.parms.VerticesMaxForBuffer,
+                        gltfCopyright           = LContext.parms.GltfCopyright,
+                        addUniqueCodes          = LContext.parms.AddUniqueCodes,
+                        doubleSided             = LContext.parms.DoubleSided,
+                        textureMaxSize          = LContext.parms.TextureMaxSize,
+                        logBuilding             = LContext.parms.LogBuilding,
+                        logGltfBuilding         = LContext.parms.LogGltfBuilding,
+                        preferredTextureFormatIfNoTransparency = LContext.parms.PreferredTextureFormatIfNoTransparency,
+                        preferredTextureFormat  = LContext.parms.PreferredTextureFormat,
+                        writeBinaryGltf         = LContext.parms.WriteBinaryGltf,
+                        useReadableFilenames    = LContext.parms.UseReadableFilenames,
+                        useDeepFilenames        = LContext.parms.UseDeepFilenames
+                    }
+                );
                 gltf.LoadScene(pBScene);
             }
             catch (Exception e) {
@@ -217,8 +242,8 @@ namespace org.herbal3d.Loden {
         }
 
         // Given a filename, return the URI that would reference that file in the asset system
-        private string CreateFileURI(string pFilename, IParameters pParams) {
-            return PersistRules.ReferenceURL(pParams.P<string>("URIBase"), pFilename);
+        private string CreateFileURI(string pFilename, string URIBase) {
+            return PersistRules.ReferenceURL(URIBase, pFilename);
         }
 
         // Create a region hash made of the hashes of all the SOGs in the region

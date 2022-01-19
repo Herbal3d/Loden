@@ -46,17 +46,14 @@ namespace org.herbal3d.Loden {
 
         void IBLogger.Info(string pMsg, params object[] pArgs) {
             _log.InfoFormat(pMsg, pArgs);
-            throw new NotImplementedException();
         }
 
         void IBLogger.Trace(string pMsg, params object[] pArgs) {
             _log.DebugFormat(pMsg, pArgs);
-            throw new NotImplementedException();
         }
 
         void IBLogger.Warn(string pMsg, params object[] pArgs) {
             _log.WarnFormat(pMsg, pArgs);
-            throw new NotImplementedException();
         }
     }
 }

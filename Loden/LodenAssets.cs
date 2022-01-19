@@ -62,10 +62,18 @@ namespace org.herbal3d.Loden {
         // If there is no SOG info in the database, return 'null'.
         public async Task<LHandle> GetHandle(BHash pHash) {
             LHandle ret = null;
+            var persistParams = new PersistRulesParams() {
+                outputDir                   = _context.parms.OutputDir,
+                preferredTextureFormatIfNoTransparency = _context.parms.PreferredTextureFormatIfNoTransparency,
+                preferredTextureFormat      = _context.parms.PreferredTextureFormatIfNoTransparency,
+                writeBinaryGltf             = _context.parms.WriteBinaryGltf,
+                useReadableFilenames        = _context.parms.UseReadableFilenames,
+                useDeepFilenames            = _context.parms.UseDeepFilenames
+            };
             string filename = PersistRules.GetFilename(PersistRules.AssetType.Scene,
-                                _scene.RegionInfo.RegionName, pHash.ToString(), _context.parms);
+                                _scene.RegionInfo.RegionName, pHash.ToString(), persistParams);
             filename = Path.GetFileNameWithoutExtension(filename);
-            string dir = PersistRules.StorageDirectory(pHash.ToString(), _context.parms);
+            string dir = PersistRules.StorageDirectory(pHash.ToString(), persistParams.outputDir, persistParams.useDeepFilenames);
             // Heavy handed async stuff but the checks for existance could take a while
             //     if the storage system is remote.
             if (await Task.Run(() => {
