@@ -40,10 +40,10 @@ namespace org.herbal3d.Loden {
         public IConfig sysConfig;
         public LodenParams parms;
         public LodenStats stats;
-        public IBLogger log;
+        public BLogger log;
         public string contextName;          // a unique identifier for this context -- used in filenames, ...
 
-        public LodenContext(IConfig pSysConfig, LodenParams pParms, IBLogger pLog) {
+        public LodenContext(IConfig pSysConfig, LodenParams pParms, BLogger pLog) {
             sysConfig = pSysConfig;
             parms = pParms;
             log = pLog;

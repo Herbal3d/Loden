@@ -11,12 +11,6 @@
 //     See the License for the specific language governing permissions and
 //     limitations under the License.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using org.herbal3d.cs.CommonUtil;
 
 using log4net;
@@ -24,7 +18,7 @@ using log4net;
 namespace org.herbal3d.Loden {
 
     // Wrapper for log4net that looks like a IBLogger
-    class LoggerLog4Net : IBLogger {
+    class LoggerLog4Net : BLogger {
 
         private readonly ILog _log;
 
@@ -32,28 +26,35 @@ namespace org.herbal3d.Loden {
             _log = pLog;
         }
 
-        void IBLogger.SetLogLevel(LogLevels pLevel) {
+        void BLogger.SetLogLevel(LogLevels pLevel) {
             // throw new NotImplementedException();
         }
+        void BLogger.Debug(string pMsg, params object[] pArgs) {
+            if (_log.IsDebugEnabled) {
+                _log.DebugFormat(pMsg, pArgs);
+            }
+        }
 
-        void IBLogger.Debug(string pMsg, params object[] pArgs) {
+        void BLogger.Error(string pMsg, params object[] pArgs) {
+            if (_log.IsErrorEnabled) {
+                _log.ErrorFormat(pMsg, pArgs);
+            }
+        }
+
+        void BLogger.Info(string pMsg, params object[] pArgs) {
+            if (_log.IsInfoEnabled) {
+                _log.InfoFormat(pMsg, pArgs);
+            }
+        }
+
+        void BLogger.Trace(string pMsg, params object[] pArgs) {
             _log.DebugFormat(pMsg, pArgs);
         }
 
-        void IBLogger.Error(string pMsg, params object[] pArgs) {
-            _log.ErrorFormat(pMsg, pArgs);
-        }
-
-        void IBLogger.Info(string pMsg, params object[] pArgs) {
-            _log.InfoFormat(pMsg, pArgs);
-        }
-
-        void IBLogger.Trace(string pMsg, params object[] pArgs) {
-            _log.DebugFormat(pMsg, pArgs);
-        }
-
-        void IBLogger.Warn(string pMsg, params object[] pArgs) {
-            _log.WarnFormat(pMsg, pArgs);
+        void BLogger.Warn(string pMsg, params object[] pArgs) {
+            if (_log.IsWarnEnabled) {
+                _log.WarnFormat(pMsg, pArgs);
+            }
         }
     }
 }
