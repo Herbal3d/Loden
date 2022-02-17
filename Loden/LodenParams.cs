@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using System.Linq;
 
 using org.herbal3d.cs.CommonUtil;
 
@@ -94,7 +95,7 @@ namespace org.herbal3d.Loden {
         public string PreferredTextureFormatIfNoTransparency = "JPG";
 
         [ConfigParam(name: "AddUniqueCodes", valueType: typeof(bool), desc: "Add an extras.unique value to some GLTF objects as a unique hash")]
-            public bool AddUniqueCodes = true;
+        public bool AddUniqueCodes = true;
         [ConfigParam(name: "DisplayTimeScaling", valueType: typeof(bool), desc: "If to delay mesh scaling to display/GPU time")]
         public bool DisplayTimeScaling = false;
 
@@ -103,13 +104,23 @@ namespace org.herbal3d.Loden {
         [ConfigParam(name: "LogGltfBuilding", valueType: typeof(bool), desc: "output detailed gltf construction details")]
         public bool LogGltfBuilding = false;
 
+        /// <summary>
+        /// Given a set of user parameters, loop through all the defined parameters
+        ///     and change the default value to the user's value if specified.
+        /// </summary>
+        /// <param name="cfg"></param>
         public void SetParameterConfigurationValues(IConfig cfg) {
+            // For every method in this class
             foreach (FieldInfo fi in this.GetType().GetFields()) {
+                // For every attribute in the field
                 foreach (Attribute attr in Attribute.GetCustomAttributes(fi)) {
+                    // If the attribute is a 'ConfigParam'
                     ConfigParam cp = attr as ConfigParam;
                     if (cp != null) {
+                        // If the user specified a new value, use that value
                         if (cfg.Contains(cp.name)) {
                             string configValue = cfg.GetString(cp.name);
+                            // User values are always type 'string' so convert to value type
                             fi.SetValue(this, ParamBlock.ConvertToObj(cp.valueType, configValue));
                         }
                     }
