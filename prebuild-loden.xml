@@ -38,6 +38,8 @@
       <Reference name="Nini"/>
       <Reference name="log4net"/>
 
+      <Reference name="Newtonsoft.Json, Version=13.0.0.0" path="..\..\..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll"/>
+
       <Files>
         <Match pattern="*.cs" recurse="true">
           <Exclude name="Tests" pattern="Tests"/>
