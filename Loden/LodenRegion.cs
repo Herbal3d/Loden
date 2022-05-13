@@ -165,10 +165,10 @@ namespace org.herbal3d.Loden {
 
         // Given a BScene, write out a GLTF version and return a handle to the version.
         private async Task<LHandle> WriteOutLevel(BHash pLevelHash, BScene pBScene, AssetManager pAssetManager) {
-            Gltf gltf;
+            GltfB gltf;
             try {
-                gltf = new Gltf(_scene.Name, LContext.log,
-                    new gltfParams() {
+                gltf = new GltfB(_scene.Name, LContext.log,
+                    new gltfParamsB() {
                         uriBase                 = LContext.parms.URIBase,
                         outputDir               = LContext.parms.OutputDir,
                         verticesMaxForBuffer    = LContext.parms.VerticesMaxForBuffer,
