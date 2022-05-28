@@ -28,7 +28,7 @@
 	  <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
 	  <ConfigurationOverrideFile>
 	  </ConfigurationOverrideFile>
-	  <DefineConstants>TRACE;DEBUG;</DefineConstants>
+	  <DefineConstants>TRACE;DEBUG;NET48;</DefineConstants>
 	  <DocumentationFile></DocumentationFile>
 	  <DebugSymbols>True</DebugSymbols>
 	  <FileAlignment>4096</FileAlignment>
@@ -49,7 +49,7 @@
 	  <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
 	  <ConfigurationOverrideFile>
 	  </ConfigurationOverrideFile>
-	  <DefineConstants>TRACE;</DefineConstants>
+	  <DefineConstants>NET48;</DefineConstants>
 	  <DocumentationFile></DocumentationFile>
 	  <DebugSymbols>False</DebugSymbols>
 	  <FileAlignment>4096</FileAlignment>
@@ -73,9 +73,8 @@
 		  <Name>Mono.Addins</Name>
 		<Private>False</Private>
 	  </Reference>
-	  <Reference Include="Newtonsoft.Json, Version=13.0.0.0" >
-		  <Name>Newtonsoft.Json, Version=13.0.0.0</Name>
-		<HintPath>..\..\..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll\Newtonsoft.Json, Version=13.0.0.0.dll</HintPath>
+	  <Reference Include="Newtonsoft.Json" >
+		  <Name>Newtonsoft.Json</Name>
 		<Private>False</Private>
 	  </Reference>
 	  <Reference Include="Nini" >
@@ -190,6 +189,9 @@
 		<SubType>Code</SubType>
 	  </Compile>
 	  <Compile Include="Tiles.cs">
+		<SubType>Code</SubType>
+	  </Compile>
+	  <Compile Include="VersionInfo.cs">
 		<SubType>Code</SubType>
 	  </Compile>
 	  <Compile Include="Properties\AssemblyInfo.cs">

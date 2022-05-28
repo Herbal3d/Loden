@@ -79,7 +79,7 @@ namespace org.herbal3d.Loden {
             // Subscribe to changes in the region so we know when to start rebuilding
             // TODO:
 
-            BHash regionHash = LodenRegion.CreateRegionHash(_scene);
+            BHash regionHash = CreateRegionHash(_scene);
             LContext.log.Debug("{0} SOGs in region: {1}", _logHeader, _scene.GetSceneObjectGroups().Count);
             LContext.log.Debug("{0} Computed region hash: {1}", _logHeader, regionHash.ToString());
 
@@ -247,39 +247,52 @@ namespace org.herbal3d.Loden {
         }
 
         // Create a region hash made of the hashes of all the SOGs in the region
-        public static BHash CreateRegionHash(Scene pScene) {
+        public BHash CreateRegionHash(Scene pScene) {
             BHasher regionHasher = new BHasherSHA256();
             regionHasher.Add(pScene.RegionInfo.RegionID.GetBytes(), 0, 16);
 
             foreach (SceneObjectGroup sog in pScene.GetSceneObjectGroups().OrderBy(x => x.UUID)) {
-                regionHasher.Add(LodenRegion.CreateSOGHash(sog));
+               CreateSOGHash(sog, regionHasher);
             }
             
             return regionHasher.Finish();
         }
 
-        // Create a uniquifying hash for this SOG instance.
-        // The hash includes the UUID, a hash of the prim paramters, and the position in the scene.
-        public static BHash CreateSOGHash(SceneObjectGroup pSog) {
+        public BHash CreateHashForSOGs(List<SceneObjectGroup> sogList) {
             BHasher sogHasher = new BHasherSHA256();
-            sogHasher.Add(pSog.UUID.GetBytes(), 0, 16);
-            foreach (SceneObjectPart sop in pSog.Parts.OrderBy(x => x.UUID)) {
-                sogHasher.Add(sop.UUID.GetBytes(), 0, 16);
-                sogHasher.Add(sop.Shape.GetMeshKey(sop.Scale, (float)OMVR.DetailLevel.Highest));
-                LodenRegion.AddPositionToHash(sogHasher, sop.AbsolutePosition, sop.RotationOffset);
-            };
+
+            foreach (SceneObjectGroup sog in sogList.OrderBy(x => x.UUID)) {
+               CreateSOGHash(sog, sogHasher);
+            }
+            
             return sogHasher.Finish();
         }
 
-        public static void AddPositionToHash(BHasher hasher, OMV.Vector3 pos, OMV.Quaternion rot) {
-            hasher.Add(pos.X);
-            hasher.Add(pos.Y);
-            hasher.Add(pos.Z);
-            hasher.Add(rot.X);
-            hasher.Add(rot.Y);
-            hasher.Add(rot.Z);
-            hasher.Add(rot.W);
-            
+        // Create a uniquifying hash for this SOG instance.
+        // The hash includes the UUID, a hash of the prim paramters, and the position in the scene.
+        public void CreateSOGHash(SceneObjectGroup pSog, BHasher pHasher) {
+            pHasher.Add(pSog.UUID.GetBytes(), 0, 16);
+            foreach (SceneObjectPart sop in pSog.Parts.OrderBy(x => x.UUID)) {
+                pHasher.Add(sop.UUID.GetBytes(), 0, 16);
+                ulong meshKey = sop.Shape.GetMeshKey(sop.Scale, (float)OMVR.DetailLevel.Highest);
+                pHasher.Add(meshKey);
+                // pHasher.Add(sop.Shape.GetMeshKey(sop.Scale, (float)OMVR.DetailLevel.Highest));
+                AddPositionToHash(pHasher, sop.AbsolutePosition, sop.RotationOffset);
+            }
+        }
+
+        // There seems to be some jitter in the position and rotation information on
+        //    different invocations of OpenSimulator. For the purposes of calculating
+        //    a hash for a set of SOGs, we use a rounded version of pos and rot.
+        public void AddPositionToHash(BHasher hasher, OMV.Vector3 pos, OMV.Quaternion rot) {
+            hasher.Add((float)Math.Round(pos.X, 2));
+            hasher.Add((float)Math.Round(pos.Y, 2));
+            hasher.Add((float)Math.Round(pos.Z, 2));
+            // Don't use OMV.Quaternion.GetBytes() as it computes and returns a normalized Quaternion
+            hasher.Add((float)Math.Round(rot.X));
+            hasher.Add((float)Math.Round(rot.Y));
+            hasher.Add((float)Math.Round(rot.Z));
+            hasher.Add((float)Math.Round(rot.W));
         }
     }
 }
