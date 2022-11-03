@@ -1,4 +1,8 @@
-    <Project frameworkVersion="v4_8" name="Herbal3d.Loden" path="addon-modules/Loden/Loden" type="Library">
+    <Project frameworkVersion="net6_0"
+            name="Herbal3d.Loden"
+            path="addon-modules/Loden/Loden"
+            type="Library">
+
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -13,9 +17,7 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Drawing"/>
-      <Reference name="System.Reflection"/>
+
       <Reference name="Mono.Addins"/>
 
       <Reference name="OpenMetaverse"/>
