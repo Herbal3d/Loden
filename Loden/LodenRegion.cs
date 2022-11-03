@@ -200,7 +200,7 @@ namespace org.herbal3d.Loden {
                     using (StreamWriter outt = new StreamWriter(outm)) {
                         gltf.ToJSON(outt);
                     }
-                    await pAssetManager.AssetStorage.Store(topLevelFilename, outm.ToArray());
+                    await pAssetManager.AssetStorage.Store(topLevelFilename, outm.ToArray(), true);
                 }
                 gltf.WriteBinaryFiles(pAssetManager.AssetStorage);
                 gltf.WriteImages(pAssetManager.AssetStorage);
@@ -236,7 +236,8 @@ namespace org.herbal3d.Loden {
                 using (var outt = new StreamWriter(outm)) {
                     regSpec.ToJSON(outt);
                 }
-                await pAssetManager.AssetStorage.Store(pFilename, outm.ToArray());
+                LContext.log.Debug("{0} Writing region spec file to {1}", _logHeader, pFilename);
+                await pAssetManager.AssetStorage.Store(pFilename, outm.ToArray(), true);
             }
             return new LHandle(new BHashULong(), pFilename);
         }
