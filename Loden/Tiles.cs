@@ -16,10 +16,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Text;
-using System.Threading.Tasks;
-
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 // Definition of classes for Cesium 3d-Tiles.
 // https://github.com/AnalyticalGraphicsInc/3d-tiles/tree/master/specification
@@ -27,17 +25,12 @@ using Newtonsoft.Json.Linq;
 namespace org.herbal3d.Tiles {
     public class TileSet {
         public TileAsset asset;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TileProperties properties;
         public float geometricError;
         public Tile root;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string[] extensionsUsed;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string[] extensionsRequired;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TileExtensions extensions;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TileExtensions extras;
 
         public TileSet() {
@@ -47,36 +40,38 @@ namespace org.herbal3d.Tiles {
         }
 
         public void ToJSON(StreamWriter outt) {
-            JsonSerializer serializer = new JsonSerializer {
-                Formatting = Formatting.Indented
-            };
-            serializer.Serialize(outt, this);
+            string json = JsonSerializer.Serialize(outt, new JsonSerializerOptions {
+                WriteIndented = true,
+                IncludeFields = true,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                Converters = { new JustAnArrayIO() }
+            });
             outt.Flush();
         }
 
         public static TileSet FromStream(Stream pIn) {
-            TileSet ret;
-            using (StreamReader stream = new StreamReader(pIn, Encoding.UTF8)) {
-                string tileSetJSON = stream.ReadToEnd();
-                ret = FromString(tileSetJSON);
-            }
+            TileSet ret = JsonSerializer.Deserialize<TileSet>(pIn, new JsonSerializerOptions {
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                IncludeFields = true,
+                Converters = { new JustAnArrayIO() }
+            });
             return ret;
         }
 
         public static TileSet FromString(string pIn) {
-            TileSet ret;
-            ret = JsonConvert.DeserializeObject<TileSet>(pIn, new JustAnArrayIO());
+            TileSet ret = JsonSerializer.Deserialize<TileSet>(pIn, new JsonSerializerOptions {
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                IncludeFields = true,
+                Converters = { new JustAnArrayIO() }
+            });
             return ret;
         }
     }
 
     public class TileAsset {
         public string version = "1.0";
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string tilesetVersion;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TileExtensions extensions;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TileExtensions extras;
 
         public TileAsset() {
@@ -85,20 +80,13 @@ namespace org.herbal3d.Tiles {
 
     public class Tile {
         public TileBoundingVolume boundingVolume = new TileBoundingVolume();
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TileBoundingVolume viewerRequestVolume;
         public float geometricError = 1.0f;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string refine;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TileTransform transform;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TileContent content;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TileContent[] children;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TileExtensions extensions;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TileExtensions extras;
 
         public Tile() {
@@ -106,16 +94,11 @@ namespace org.herbal3d.Tiles {
     }
 
     public class TileContent {
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TileBoundingVolume boundingVolume;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string uri;
         // Basil extension so a tile's content can be multiple GLTF files.
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string[] uris;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TileExtensions extensions;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TileExtensions extras;
 
         public TileContent() {
@@ -126,30 +109,51 @@ namespace org.herbal3d.Tiles {
     }
 
     public class TileBoundingVolume {
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TileBox box;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TileRegion region;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TileSphere sphere;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TileExtensions extensions;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TileExtensions extras;
     }
 
+    // Several fields are just an array of numbers. This class is used as
+    //    the base class and the JSON converter creates the correct underlying
+    //    class.
     public abstract class JustAnArray {
-        abstract public int ArraySize();
+        // public static int Size;
         abstract public double[] GetArray();
         abstract public string Name();
+
+        static public double[] ReadArray(ref Utf8JsonReader reader, int pArraySize)
+        {
+            if (reader.TokenType != JsonTokenType.StartArray) {
+                throw new JsonException();
+            }
+            double[] values = new double[pArraySize];
+            int i = 0;
+            while (reader.Read() && reader.TokenType != JsonTokenType.EndArray) {
+                if (reader.TokenType != JsonTokenType.Number) {
+                    throw new JsonException();
+                }
+                values[i++] = reader.GetDouble();
+            }
+            return values;
+        }
+        static public void WriteArray(Utf8JsonWriter writer, double[] pArray) {
+            writer.WriteStartArray();
+            for (int ii=0; ii < pArray.Length; ii++) {
+                writer.WriteNumberValue(pArray[ii]);
+            }
+            writer.WriteEndArray();
+        }
     }
+
     // double[16] specifying node transform
     // [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]
-    [JsonConverter(typeof(JustAnArrayIO))]
     public class TileTransform : JustAnArray {
         public double[] transform;
 
-        public override int ArraySize() { return 16; }
+        public static int ArraySize = 16;
         public override double[] GetArray() { return transform; }
         public override string Name() { return "transform"; }
 
@@ -167,16 +171,15 @@ namespace org.herbal3d.Tiles {
     //    and half-length.The next three elements(indices 6, 7, and 8) define the y axis
     //    direction and half-length.The last three elements(indices 9, 10, and 11)
     //    define the z axis direction and half-length.
-    [JsonConverter(typeof(JustAnArrayIO))]
     public class TileBox : JustAnArray {
         public double[] box;
 
-        public override int ArraySize() { return 12; }
+        public static int ArraySize = 12;
         public override double[] GetArray() { return box; }
         public override string Name() { return "box"; }
 
         public TileBox() {
-            box = new double[12];
+            box = new double[ArraySize];
         }
         public TileBox(double[] pValues) {
             box = pValues;
@@ -187,14 +190,13 @@ namespace org.herbal3d.Tiles {
     //    coordinates with the order[west, south, east, north, minimum height, maximum height].
     //    Longitudes and latitudes are in radians, and heights are in meters above
     //    (or below) the WGS84 ellipsoid.
-    [JsonConverter(typeof(JustAnArrayIO))]
     public class TileRegion : JustAnArray {
         public double[] region;
-        public override int ArraySize() { return 6; }
+        public static int ArraySize = 6;
         public override double[] GetArray() { return region; }
         public override string Name() { return "region"; }
         public TileRegion() {
-            region = new double[6];
+            region = new double[ArraySize];
         }
         public TileRegion(double[] pValues) {
             region = pValues;
@@ -203,17 +205,85 @@ namespace org.herbal3d.Tiles {
     // double[6] defining a sphere
     // The first three elements define the x, y, and z values for the center of the sphere.
     //  The last element (with index 3) defines the radius in meters.
-    [JsonConverter(typeof(JustAnArrayIO))]
-     public class TileSphere : JustAnArray {
+    public class TileSphere : JustAnArray {
         public double[] sphere;
-        public override int ArraySize() { return 4; }
+        public static int ArraySize = 4;
         public override double[] GetArray() { return sphere; }
         public override string Name() { return "sphere"; }
         public TileSphere() {
-            sphere = new double[4];
+            sphere = new double[4] { 0, 0, 0, 1 };
         }
         public TileSphere(double[] pValues) {
             sphere = pValues;
+        }
+    }
+
+    public class JustAnArrayIO : JsonConverterFactory {
+        public override bool CanConvert(Type typeToConvert) {
+            return typeof(JustAnArray).IsAssignableFrom(typeToConvert);
+        }
+        public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options) {
+            switch (typeToConvert.Name) {
+                case nameof(TileTransform):
+                    return new TileTransformConverter();
+                case nameof(TileBox):
+                    return new TileBoxConverter();
+                case nameof(TileRegion):
+                    return new TileRegionConverter();
+                case nameof(TileSphere):
+                    return new TileSphereConverter();
+            }
+            throw new JsonException();
+        }
+    }
+    public class TileTransformConverter: JsonConverter<TileTransform> {
+        public override bool CanConvert(Type objectType) {
+            return objectType == typeof(TileTransform);
+        }
+        public override TileTransform Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
+            var values = JustAnArray.ReadArray(ref reader, TileTransform.ArraySize);
+            return new TileTransform(values);
+        }
+        public override void Write(Utf8JsonWriter writer, TileTransform value, JsonSerializerOptions options) {
+            JustAnArray.WriteArray(writer, value.GetArray());
+        }
+    }
+    public class TileBoxConverter: JsonConverter<TileBox> {
+        public override bool CanConvert(Type objectType) {
+            return objectType == typeof(TileBox);
+        }
+        public override TileBox Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
+            var values = JustAnArray.ReadArray(ref reader, TileBox.ArraySize);
+            return new TileBox(values);
+        }
+        public override void Write(Utf8JsonWriter writer, TileBox value, JsonSerializerOptions options) {
+            JustAnArray.WriteArray(writer, value.GetArray());
+        }
+    }
+    public class TileRegionConverter: JsonConverter<TileRegion> {
+        public override bool CanConvert(Type objectType) {
+            return objectType == typeof(TileRegion);
+        }
+        public override TileRegion Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
+            var values = JustAnArray.ReadArray(ref reader, TileRegion.ArraySize);
+            return new TileRegion(values);
+        }
+        public override void Write(Utf8JsonWriter writer, TileRegion value, JsonSerializerOptions options) {
+            JustAnArray.WriteArray(writer, value.GetArray());
+        }
+    }
+    // TileBox
+    // TileRegion
+    public class TileSphereConverter: JsonConverter<TileSphere> {
+        public override bool CanConvert(Type objectType) {
+            return objectType == typeof(TileSphere);
+        }
+        public override TileSphere Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
+            var values = JustAnArray.ReadArray(ref reader, TileSphere.ArraySize);
+            return new TileSphere(values);
+        }
+        public override void Write(Utf8JsonWriter writer, TileSphere value, JsonSerializerOptions options) {
+            JustAnArray.WriteArray(writer, value.GetArray());
         }
     }
 
@@ -223,50 +293,11 @@ namespace org.herbal3d.Tiles {
     public class TileProperty {
         public double minimum;
         public double maximum;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public TileExtensions extensions;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public TileExtensions extras;
     }
     public class TileProperties : Dictionary<string, TileProperty> {
-    }
-
-    // JSON output and input routines for classes that are really just names
-    //    and an array of values;
-    class JustAnArrayIO : JsonConverter {
-        public override bool CanRead => true;
-        public override bool CanWrite => true;
-
-        public override bool CanConvert(Type objectType) {
-            return objectType == typeof(JustAnArray);
-        }
-
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) {
-            object ret = null;
-            JToken array = JToken.Load(reader);
-            if (array.Type == JTokenType.Array) {
-                double[] arrayValues = array.ToObject<List<double>>().ToArray();
-                if (objectType == typeof(TileBox)) {
-                    ret = new TileBox(arrayValues);
-                }
-                if (objectType == typeof(TileRegion)) {
-                    ret = new TileRegion(arrayValues);
-                }
-                if (objectType == typeof(TileTransform)) {
-                    ret = new TileTransform(arrayValues);
-                }
-                if (objectType == typeof(TileSphere)) {
-                    ret = new TileSphere(arrayValues);
-                }
-            }
-            return ret;
-        }
-
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) {
-            if (value is JustAnArray obj) {
-                JArray values = new JArray(obj.GetArray());
-                values.WriteTo(writer);
-            }
-        }
     }
 }
