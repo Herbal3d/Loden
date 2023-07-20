@@ -102,7 +102,7 @@ namespace org.herbal3d.Loden {
                         TileSet regionTiles = TileSet.FromString(regionSpec);
                         if (regionTiles.root.content.extras.ContainsKey("contentHash")) {
                             // If the content hash matches, the region doesn't need rebuilding
-                            if ((string)regionTiles.root.content.extras["contentHash"] == regionHash.ToString()) {
+                            if (regionTiles.root.content.extras["contentHash"].ToString() == regionHash.ToString()) {
                                 LContext.log.Debug("{0} Content hash matches. Not rebuilding", _logHeader);
                                 buildRegion = false;
                             }
